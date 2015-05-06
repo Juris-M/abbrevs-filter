@@ -23,10 +23,10 @@
     ***** END LICENSE BLOCK *****
 */
 
-pref("extensions.abbreviations-for-zotero.boolpref", false);
-pref("extensions.abbreviations-for-zotero.intpref", 0);
-pref("extensions.abbreviations-for-zotero.currentList", "default");
-pref("extensions.abbreviations-for-zotero.currentCategory", "container-title");
+pref("extensions.abbrevs-filter.boolpref", false);
+pref("extensions.abbrevs-filter.intpref", 0);
+pref("extensions.abbrevs-filter.currentList", "default");
+pref("extensions.abbrevs-filter.currentCategory", "container-title");
 
 // https://developer.mozilla.org/en/Localizing_extension_descriptions
-pref("extensions.abbreviations-for-zotero@mystery-lab.com.description", "chrome://abbreviations-for-zotero/locale/overlay.properties");
+pref("extensions.abbrevs-filter@juris-m.github.io.description", "chrome://abbrevs-filter/locale/overlay.properties");

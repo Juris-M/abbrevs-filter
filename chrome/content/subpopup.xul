@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 <?xml-stylesheet href="chrome://global/skin/dialog.css" type="text/css"?>
-<?xml-stylesheet href="chrome://zotero/skin/zotero.css" type="text/css"?>
-<?xml-stylesheet href="chrome://zotero/skin/overlay.css" type="text/css"?>
-<?xml-stylesheet href="chrome://zotero-platform/content/overlay.css" type="text/css"?>
-<?xml-stylesheet href="chrome://zotero/skin/integration.css" type="text/css"?>
+<?xml-stylesheet href="chrome://abbrevs-filter/skin/zotero.css" type="text/css"?>
+<?xml-stylesheet href="chrome://abbrevs-filter/skin/overlay.css" type="text/css"?>
+<?xml-stylesheet href="chrome://abbrevs-filter-platform/content/overlay.css" type="text/css"?>
+<?xml-stylesheet href="chrome://abbrevs-filter/skin/integration.css" type="text/css"?>
 <!DOCTYPE window SYSTEM "chrome://abbrevs-filter/locale/subpopup.dtd">
 
 <!-- windowtype="zotero:item-selector" -->

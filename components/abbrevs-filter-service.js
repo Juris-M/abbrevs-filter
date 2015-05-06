@@ -43,28 +43,28 @@ if(appInfo.platformVersion[0] >= 2) {
 var xpcomFiles = [
 	"load",
 	"main",
-	"subpopup",
     "getabbr",
 	"import",
 	"export"
 ];
 
-dump("XXX DUMP (2)!\n");
+dump("XXX DUMPx (2)!\n");
 
 for (var i=0, ilen=xpcomFiles.length; i < ilen; i += 1) {
-	try {
+	dump("XXX Load " + xpcomFiles[i] + ".js (or die trying)\n");
+	//try {
 		Cc["@mozilla.org/moz/jssubscript-loader;1"]
 			.getService(Ci.mozIJSSubScriptLoader)
 			.loadSubScript("chrome://abbrevs-filter/content/xpcom/" + xpcomFiles[i] + ".js");
-	}
-	catch (e) {
-		dump("Error loading " + xpcomFiles[i] + ".js\n");
-		Components.utils.reportError("Error loading " + xpcomFiles[i] + ".js");
-		throw (e);
-	}
+	//}
+	//catch (e) {
+	//	dump("Error loading " + xpcomFiles[i] + ".js\n");
+	//	Components.utils.reportError("Error loading " + xpcomFiles[i] + ".js");
+	//	throw (e);
+	//}
 }
 
-dump("XXX DUMP (3)!\n");
+dump("XXX DUMPx (3)!\n");
 
 
 var AbbrevsFilter = new AbbrevsFilter();

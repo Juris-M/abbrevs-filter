@@ -1,5 +1,6 @@
+content abbrevs-filter-platform chrome/content/abbrevs-filter-platform/ platform
 content   abbrevs-filter                 chrome/content/
-skin      abbrevs-filter   default   chrome/skin/
+skin      abbrevs-filter   default   chrome/skin/default/abbrevs-filter/
 locale    abbrevs-filter   en-US         chrome/locale/en-US/
 resource  abbrevs-filter   resource/
 
