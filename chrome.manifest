@@ -1,0 +1,13 @@
+content   abbrevs-filter                 chrome/content/
+skin      abbrevs-filter   default   chrome/skin/
+locale    abbrevs-filter   en-US         chrome/locale/en-US/
+resource  abbrevs-filter   resource/
+
+component	{e2731ad0-8426-11e0-9d78-0800200c5798}		components/abbrevs-filter-service.js
+contract	@juris-m.github.io/abbrevs-filter;1 	{e2731ad0-8426-11e0-9d78-0800200c5798}
+
+overlay	chrome://browser/content/browser.xul	chrome://abbrevs-filter/content/browserOverlay.xul
+overlay   chrome://zotero/content/zoteroPane.xul   chrome://abbrevs-filter/content/browserOverlay.xul
+overlay   chrome://zotero/content/integration/addCitationDialog.xul   chrome://abbrevs-filter/content/classicOverlay.xul
+overlay   chrome://zotero/content/integration/quickFormat.xul   chrome://abbrevs-filter/content/quickformatOverlay.xul
+overlay   chrome://zotero/content/tools/csledit.xul   chrome://abbrevs-filter/content/csleditOverlay.xul
