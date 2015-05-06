@@ -30,6 +30,8 @@ const Ci = Components.interfaces;
 
 var WrappedAbbrevsFilter = this;
 
+dump("XXX DUMP (1)!\n");
+
 Components.utils["import"]("resource://gre/modules/XPCOMUtils.jsm");
 
 var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
@@ -47,6 +49,8 @@ var xpcomFiles = [
 	"export"
 ];
 
+dump("XXX DUMP (2)!\n");
+
 for (var i=0, ilen=xpcomFiles.length; i < ilen; i += 1) {
 	try {
 		Cc["@mozilla.org/moz/jssubscript-loader;1"]
@@ -58,6 +62,9 @@ for (var i=0, ilen=xpcomFiles.length; i < ilen; i += 1) {
 		throw (e);
 	}
 }
+
+dump("XXX DUMP (3)!\n");
+
 
 var AbbrevsFilter = new AbbrevsFilter();
 
@@ -71,12 +78,15 @@ function setupService(){
 	}
 }
 
+dump("XXX DUMP (4)!\n");
 
 
 function AbbrevsFilterService() { 
 	this.wrappedJSObject = WrappedAbbrevsFilter.AbbrevsFilter;
 	setupService();
 }
+
+dump("XXX DUMP (5)!\n");
 
 AbbrevsFilterService.prototype = {
   classDescription: 'Juris-M Abbreviation Filter',
@@ -85,6 +95,8 @@ AbbrevsFilterService.prototype = {
   service: true,
   QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsISupports])
 };
+
+dump("XXX DUMP (6)!\n");
 
 if (XPCOMUtils.generateNSGetFactory) {
 	var NSGetFactory = XPCOMUtils.generateNSGetFactory([AbbrevsFilterService]);
