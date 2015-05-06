@@ -7,7 +7,13 @@ component	{e2731ad0-8426-11e0-9d78-0800200c5798}		components/abbrevs-filter-serv
 contract	@juris-m.github.io/abbrevs-filter;1 	{e2731ad0-8426-11e0-9d78-0800200c5798}
 
 overlay	chrome://browser/content/browser.xul	chrome://abbrevs-filter/content/browserOverlay.xul
+
 overlay   chrome://zotero/content/zoteroPane.xul   chrome://abbrevs-filter/content/browserOverlay.xul
 overlay   chrome://zotero/content/integration/addCitationDialog.xul   chrome://abbrevs-filter/content/classicOverlay.xul
 overlay   chrome://zotero/content/integration/quickFormat.xul   chrome://abbrevs-filter/content/quickformatOverlay.xul
 overlay   chrome://zotero/content/tools/csledit.xul   chrome://abbrevs-filter/content/csleditOverlay.xul
+
+overlay   chrome://jurism/content/zoteroPane.xul   chrome://abbrevs-filter/content/browserOverlay.xul
+overlay   chrome://jurism/content/integration/addCitationDialog.xul   chrome://abbrevs-filter/content/classicOverlay.xul
+overlay   chrome://jurism/content/integration/quickFormat.xul   chrome://abbrevs-filter/content/quickformatOverlay.xul
+overlay   chrome://jurism/content/tools/csledit.xul   chrome://abbrevs-filter/content/csleditOverlay.xul
