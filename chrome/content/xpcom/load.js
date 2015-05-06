@@ -50,19 +50,19 @@ AbbrevsFilter.prototype.init = function () {
 
     if(this.isFx4) {
 	    Components.utils.import("resource://gre/modules/AddonManager.jsm");
-	    AddonManager.getAddonByID("abbrevs-filter@mystery-lab.com",
+	    AddonManager.getAddonByID("abbrevs-filter@juris-m.github.io",
 			                      function(addon) { AbbrevsFilter.version = addon.version; AbbrevsFilter.addon = addon; });
     } else {
 	    var gExtensionManager =
 	        Components.classes["@mozilla.org/extensions/manager;1"]
 	        .getService(Components.interfaces.nsIExtensionManager);
 	    this.version
-	        = gExtensionManager.getItemForID("abbrevs-filter@mystery-lab.com").version;
+	        = gExtensionManager.getItemForID("abbrevs-filter@juris-m.github.io").version;
     }
     
     var schema = "abbrevs-filter";
     var schemaFile = schema + '.sql';
-    AddonManager.getAddonByID("abbrevs-filter@mystery-lab.com", function(addon) {
+    AddonManager.getAddonByID("abbrevs-filter@juris-m.github.io", function(addon) {
 	    
 	    // From Zotero getInstallDirectory()
 	    var file;
@@ -71,7 +71,7 @@ AbbrevsFilter.prototype.init = function () {
 	        var resourceURI = AbbrevsFilter.addon.getResourceURI();
 	        file = resourceURI.QueryInterface(Components.interfaces.nsIFileURL).file;
 	    } else {
-	        var id = 'abbrevs-filter@mystery-lab.com';
+	        var id = 'abbrevs-filter@juris-m.github.io';
 	        var em = Components.classes["@mozilla.org/extensions/manager;1"]
 		        .getService(Components.interfaces.nsIExtensionManager);
 	        file= em.getInstallLocation(id).getItemLocation(id);

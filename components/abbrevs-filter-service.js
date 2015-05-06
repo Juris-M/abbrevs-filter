@@ -28,7 +28,7 @@
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
-var WrappedAbbreviationsForZotero = this;
+var WrappedAbbrevsFilter = this;
 
 Components.utils["import"]("resource://gre/modules/XPCOMUtils.jsm");
 
@@ -51,7 +51,7 @@ for (var i=0, ilen=xpcomFiles.length; i < ilen; i += 1) {
 	try {
 		Cc["@mozilla.org/moz/jssubscript-loader;1"]
 			.getService(Ci.mozIJSSubScriptLoader)
-			.loadSubScript("chrome://abbreviations-for-zotero/content/xpcom/" + xpcomFiles[i] + ".js");
+			.loadSubScript("chrome://abbrevs-filter/content/xpcom/" + xpcomFiles[i] + ".js");
 	}
 	catch (e) {
 		Components.utils.reportError("Error loading " + xpcomFiles[i] + ".js");
@@ -59,14 +59,13 @@ for (var i=0, ilen=xpcomFiles.length; i < ilen; i += 1) {
 	}
 }
 
-var AbbreviationsForZotero = new AbbreviationsForZotero();
+var AbbrevsFilter = new AbbrevsFilter();
 
 function setupService(){
 	try {
-		AbbreviationsForZotero.init();
+		AbbrevsFilter.init();
 	} catch (e) {
 		var msg = typeof e == 'string' ? e : e.name;
-		dump("MLZ: OOPS " + e + "\n\n");
 		Components.utils.reportError(e);
 		throw (e);
 	}
@@ -74,21 +73,21 @@ function setupService(){
 
 
 
-function AbbreviationsForZoteroService() { 
-	this.wrappedJSObject = WrappedAbbreviationsForZotero.AbbreviationsForZotero;
+function AbbrevsFilterService() { 
+	this.wrappedJSObject = WrappedAbbrevsFilter.AbbrevsFilter;
 	setupService();
 }
 
-AbbreviationsForZoteroService.prototype = {
-  classDescription: 'Abbreviations for Zotero Extension',
+AbbrevsFilterService.prototype = {
+  classDescription: 'Juris-M Abbreviation Filter',
   classID:          Components.ID("{e2731ad0-8426-11e0-9d78-0800200c5798}"),
-  contractID:       '@mysterylab/AbbreviationsForZoteroService;1',
+  contractID:       '@juris-m.github.io/abbrevs-filter;1',
   service: true,
   QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsISupports])
 };
 
 if (XPCOMUtils.generateNSGetFactory) {
-	var NSGetFactory = XPCOMUtils.generateNSGetFactory([AbbreviationsForZoteroService]);
+	var NSGetFactory = XPCOMUtils.generateNSGetFactory([AbbrevsFilterService]);
 } else {
-	var NSGetModule = XPCOMUtils.generateNSGetModule([AbbreviationsForZoteroService]);
+	var NSGetModule = XPCOMUtils.generateNSGetModule([AbbrevsFilterService]);
 }
