@@ -7,9 +7,9 @@ set -e
 # Constants
 PRODUCT="Juris-M Abbreviation Filter: abbreviation list editing and maintenance"
 IS_BETA=0
-FORK="abbreviation-filter"
+FORK="abbrevs-filter"
 BRANCH="master"
-CLIENT="abbreviation-filter"
+CLIENT="abbrevs-filter"
 VERSION_ROOT="1.1."
 
 # Error handlers
