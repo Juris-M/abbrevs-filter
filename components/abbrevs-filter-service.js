@@ -58,6 +58,7 @@ for (var i=0, ilen=xpcomFiles.length; i < ilen; i += 1) {
 			.loadSubScript("chrome://abbrevs-filter/content/xpcom/" + xpcomFiles[i] + ".js");
 	}
 	catch (e) {
+		dump("Error loading " + xpcomFiles[i] + ".js\n");
 		Components.utils.reportError("Error loading " + xpcomFiles[i] + ".js");
 		throw (e);
 	}
