@@ -15,17 +15,19 @@
 	title="&abbrevs-filter.subpopupTitle;"
 	width="800" height="500"
 	minwidth="800" minheight="500"
-    onload="Zotero_Abbreviations_Subpopup.init();"
+    onload="Abbrevs_Filter_Subpopup.init();"
+    ondialogaccept="Abbrevs_Filter_Subpopup.saveField(event);window.close();"
 	ondialogextra1="AbbrevsFilter.exportList(window, document);"
 	ondialogextra2="AbbrevsFilter.importList(window, document);"
+    buttonlabelaccept="Save"
     buttonlabelextra1="&abbrevs-filter.exportButtonLabel;"
     buttonlabelextra2="&abbrevs-filter.importButtonLabel;"
 	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
 	persist="screenX screenY width height"
 	resizable="true"
-	buttons="cancel,extra1,extra2">
+	buttons="accept,cancel,extra1,extra2">
 
-	<script src="subpopup.js"/>
+  	<script src="subpopup.js"/>
 
   <groupbox orient="vertical">
     <!-- style name -->
@@ -44,7 +46,7 @@
                  type="autocomplete" 
                  autocompletesearch="zotero" 
                  autocompletesearchparam='{"fieldName":"jurisdictions"}'
-                 ontextentered="Zotero_Abbreviations_Subpopup.handleJurisdictionAutoCompleteSelect(this);"/>
+                 ontextentered="Abbrevs_Filter_Subpopup.handleJurisdictionAutoCompleteSelect(this);"/>
         <hbox flex="1"/>
       </vbox>
       <hbox flex="1" id="suppression-list" style="display:block;word-wrap:break-word;"/>

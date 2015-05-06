@@ -46,7 +46,7 @@ AbbrevsFilter.prototype.main = function (window, document) {
         }
         if (!hasEngine) {
             button.addEventListener("command", function() {
-                window.openDialog('chrome://abbrevs-filter/content/subpopup.xul', 'AbbrevsFilterSubpopup', 'chrome,centerscreen,alwaysRaised',myio);
+                window.openDialog('chrome://abbrevs-filter/content/subpopup.xul', 'AbbrevsFilterSubpopup', 'chrome,centerscreen,alwaysRaised,modal',myio);
             });
             hasEngine = true;
         }

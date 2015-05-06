@@ -18,15 +18,15 @@ window.addEventListener("load", function () {
 	function attachStyleEngine () {
         if (hasEngine) return;
         var button = document.getElementById('abbrevs-button');
-		var io = {
-            style:csleditor.styleEngine,
-            AFZ: AbbrevsFilter
-        };
         var items = Zotero.getActiveZoteroPane().getSelectedItems();
         if (items.length > 0) {
             button.removeAttribute('disabled');
 	        button.addEventListener("command", function() {
-                window.openDialog('chrome://abbrevs-filter/content/subpopup.xul', 'AbbrevsFilterSubpopup', 'chrome,centerscreen,alwaysRaised',io);
+		        var io = {
+                    style:csleditor.styleEngine,
+                    AFZ: AbbrevsFilter
+                };
+                window.openDialog('chrome://abbrevs-filter/content/subpopup.xul', 'AbbrevsFilterSubpopup', 'chrome,centerscreen,alwaysRaised,modal',io);
             }, false);
             hasEngine = true;
         }

@@ -1,12 +1,14 @@
 AbbrevsFilter = Components.classes['@juris-m.github.io/abbrevs-filter;1'].getService(Components.interfaces.nsISupports).wrappedJSObject;
 
-var Zotero_Abbreviations_Subpopup = new function () {
+var Abbrevs_Filter_Subpopup = new function () {
 
     var io = window.arguments[0]
     var AFZ = io.AFZ;
+    // XXX non-dynamic. Do these values change ever?
     var style = io.style;
     var listname = style.opt.styleID;
     var listTitle = style.opt.styleName ? style.opt.styleName : style.opt.styleID;
+
     var Zotero = AFZ.Zotero;
     var CSL = Zotero.CiteProc.CSL;
     var addOrDeleteEntry = AFZ.addOrDeleteEntry;
@@ -16,6 +18,9 @@ var Zotero_Abbreviations_Subpopup = new function () {
 
     this.init = init;
     this.handleJurisdictionAutoCompleteSelect = handleJurisdictionAutoCompleteSelect;
+    this.saveField = saveField;
+
+    var openFieldParent = null;
 
     AFZ.listname = listname;
 
@@ -31,6 +36,7 @@ var Zotero_Abbreviations_Subpopup = new function () {
     var category = prefs.getCharPref("currentCategory");
 
     function init() {
+
         var dialog = document.getElementById("abbrevs-filter-subpopup");
         var categories = [];
         for (var value in style.transform.abbrevs["default"]) {
@@ -163,54 +169,145 @@ var Zotero_Abbreviations_Subpopup = new function () {
             popup.appendChild(elem)
         }
     }
+    
+    function openRow (parent) {
 
+        // XXX This needs to show the jurisdiction on the left
+        // read-only, just show it with some sort of highlight.
 
+        var raw = parent.lastChild.previousSibling;
+        var abbrev = parent.lastChild;
+        // Set first child to wrap without truncation
+        var rawval = raw.getAttribute("value");
 
-            function openRow (parent) {
-
-                // XXX This needs to show the jurisdiction on the left
-                // read-only, just show it with some sort of highlight.
-
-                var raw = parent.lastChild.previousSibling;
-                var abbrev = parent.lastChild;
-                // Set first child to wrap without truncation
-                var rawval = raw.getAttribute("value");
-
-                // Remap if in hereinafter, setting system_id
-                var rawtext;
-                if ("hereinafter" === category) {
-                    var key = raw.getAttribute("system_id");
-                    var libKeyObj = Zotero.Items.parseLibraryKeyHash(key);
-                    var entryItem, displayTitle;
-                    if (libKeyObj) {
-                        entryItem = Zotero.Items.getByLibraryAndKey(libKeyObj.libraryID, libKeyObj.key);
-                        displayTitle = entryItem.getDisplayTitle(true);
-                    } else {
-                        // Omit if this is not a real item.
-                        return;
-                    }
-                    rawtext = document.createTextNode(displayTitle);
-                } else {
-                    rawtext = document.createTextNode(rawval);
-                }
-                raw.removeAttribute("value");
-                raw.removeAttribute("crop");
-                raw.appendChild(rawtext);
-                
-                // Save value, get rid of display box.
-                var abbrevval = abbrev.getAttribute("value");
-                parent.removeChild(abbrev);
-
-                var inputbox = document.createElement("textbox");
-                inputbox.setAttribute("value", abbrevval);
-                inputbox.setAttribute("flex", "1");
-                parent.appendChild(inputbox);
-                inputbox.value = abbrevval;
-                inputbox.selectionStart = abbrevval.length;
-                inputbox.selectionEnd = abbrevval.length;
-                inputbox.focus();
-                //inputbox.addEventListener('blur', openCloseListener, false);
+        // Remap if in hereinafter, setting system_id
+        var rawtext;
+        if ("hereinafter" === category) {
+            var key = raw.getAttribute("system_id");
+            var libKeyObj = Zotero.Items.parseLibraryKeyHash(key);
+            var entryItem, displayTitle;
+            if (libKeyObj) {
+                entryItem = Zotero.Items.getByLibraryAndKey(libKeyObj.libraryID, libKeyObj.key);
+                displayTitle = entryItem.getDisplayTitle(true);
+            } else {
+                // Omit if this is not a real item.
+                return;
             }
+            rawtext = document.createTextNode(displayTitle);
+        } else {
+            rawtext = document.createTextNode(rawval);
+        }
+        raw.removeAttribute("value");
+        raw.removeAttribute("crop");
+        raw.appendChild(rawtext);
+        
+        // Save value, get rid of display box.
+        var abbrevval = abbrev.getAttribute("value");
+        parent.removeChild(abbrev);
+
+        var inputbox = document.createElement("textbox");
+        inputbox.setAttribute("value", abbrevval);
+        inputbox.setAttribute("flex", "1");
+        parent.appendChild(inputbox);
+        inputbox.value = abbrevval;
+        inputbox.selectionStart = abbrevval.length;
+        inputbox.selectionEnd = abbrevval.length;
+        inputbox.focus();
+        //inputbox.addEventListener('blur', openCloseListener, false);
+    }
+
+
+    function saveField(event, parentArg) {
+        // It looks like everything in this block is derived from parent
+        // and event.
+        
+        // If so, we can move it to a function, call it here, and
+        // call in from the Save button also. Maybe. Anyway, anything
+        // that reduces the bulk of these silly functions is a step
+        // forward.
+
+        var type = event.type;
+
+        if (!parentArg) {
+            parent = openFieldParent;
+        }
+        if (!parent) {
+            return;
+        }
+
+        var raw = parent.lastChild.previousSibling;
+        var abbrev = parent.lastChild;
+
+        if (type === "keypress" && parentArg) {
+
+            switch (event.keyCode) {
+
+            case event.DOM_VK_RETURN:
+                event.preventDefault();
+                break;
+                
+                // Later
+            case event.DOM_VK_ESCAPE:
+                abbrev.value = abbrev.getAttribute("value");
+                break;
+                
+            case event.DOM_VK_TAB:
+                if (event.shiftKey) {
+                    var node = parent.previousElementSibling;
+                } else {
+                    var node = parent.nextElementSibling;
+                }
+                node._noBlurAction = true;
+                openRow(node);
+                return;
+                
+            default:
+                return;
+                
+            }
+        }
+
+        var rawtext = raw.firstChild;
+
+        // Use system_id if it exists (for hereinafter)
+        rawval = rawtext.nodeValue;
+
+        raw.removeChild(rawtext);
+        raw.setAttribute("value", rawval);
+        raw.setAttribute("crop", "end");
+        
+        var abbrevval = abbrev.value;
+        parent.removeChild(abbrev);
+        
+        var jurisdiction = parent.firstChild.getAttribute("value");
+        
+        // Now rawval shifts to become the system_id
+        if ("hereinafter" === category) {
+            rawval = raw.getAttribute("system_id");
+        }
+
+        addOrDeleteEntry(listname, jurisdiction, category, rawval, abbrevval);
+
+        // Reverse remap hereinafter key here
+        if ("hereinafter" === category) {
+            var entryItem = Zotero.Items.parseLibraryKeyHash(rawval);
+            if (entryItem) {
+                entryItem = Zotero.Items.getByLibraryAndKey(entryItem.libraryID, entryItem.key);
+            } else {
+                entryItem = Zotero.Items.get(rawval);
+            }
+            rawval = entryItem.id;
+        }
+
+        // Assuming all of that went well, set value on memory object
+        transform.abbrevs[jurisdiction][category][rawval] = abbrevval;
+        
+        var abbrevbox = document.createElement("description");
+        abbrevbox.setAttribute("value", abbrevval);
+        abbrevbox.setAttribute("flex", "1");
+        abbrevbox.setAttribute("class", "zotero-clicky");
+        parent.appendChild(abbrevbox);
+    }
 
     function openCloseListener(event) {
 
@@ -257,80 +354,11 @@ var Zotero_Abbreviations_Subpopup = new function () {
             }
             
             if (action === "open") {
+                openFieldParent = parent;
                 openRow(parent);
             } else { // close
-                var raw = parent.lastChild.previousSibling;
-                var abbrev = parent.lastChild;
-
-                if (type === "keypress") {
-
-                    switch (event.keyCode) {
-
-                    case event.DOM_VK_RETURN:
-                        event.preventDefault();
-                        break;
-                        
-                        // Later
-                    case event.DOM_VK_ESCAPE:
-                        abbrev.value = abbrev.getAttribute("value");
-                        break;
-                        
-                    case event.DOM_VK_TAB:
-                        if (event.shiftKey) {
-                            var node = parent.previousElementSibling;
-                        } else {
-                            var node = parent.nextElementSibling;
-                        }
-                        node._noBlurAction = true;
-                        openRow(node);
-                        return;
-                        
-                    default:
-                        return;
-                        
-                    }
-                }
-
-                var rawtext = raw.firstChild;
-
-                // Use system_id if it exists (for hereinafter)
-                rawval = rawtext.nodeValue;
-
-                raw.removeChild(rawtext);
-                raw.setAttribute("value", rawval);
-                raw.setAttribute("crop", "end");
-                
-                var abbrevval = abbrev.value;
-                parent.removeChild(abbrev);
-                
-                var jurisdiction = parent.firstChild.getAttribute("value");
-                
-                // Now rawval shifts to become the system_id
-                if ("hereinafter" === category) {
-                    rawval = raw.getAttribute("system_id");
-                }
-
-                addOrDeleteEntry(listname, jurisdiction, category, rawval, abbrevval);
-
-                // Reverse remap hereinafter key here
-                if ("hereinafter" === category) {
-                    var entryItem = Zotero.Items.parseLibraryKeyHash(rawval);
-                    if (entryItem) {
-                        entryItem = Zotero.Items.getByLibraryAndKey(entryItem.libraryID, entryItem.key);
-                    } else {
-                        entryItem = Zotero.Items.get(rawval);
-                    }
-                    rawval = entryItem.id;
-                }
-
-                // Assuming all of that went well, set value on memory object
-                transform.abbrevs[jurisdiction][category][rawval] = abbrevval;
-                
-                var abbrevbox = document.createElement("description");
-                abbrevbox.setAttribute("value", abbrevval);
-                abbrevbox.setAttribute("flex", "1");
-                abbrevbox.setAttribute("class", "zotero-clicky");
-                parent.appendChild(abbrevbox);
+                info.openField = false;
+                saveField(event, parent);
             }
 
 

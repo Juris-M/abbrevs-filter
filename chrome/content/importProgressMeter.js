@@ -1,4 +1,4 @@
-var Zotero_Abbreviations_Import = new function () {
+var Abbrevs_Filter_Import = new function () {
 
     var Zotero = Components.classes["@zotero.org/Zotero;1"]
 	.getService(Components.interfaces.nsISupports)
@@ -592,6 +592,6 @@ var Zotero_Abbreviations_Import = new function () {
     };
 
 }
-window.addEventListener("load", Zotero_Abbreviations_Import.onLoad, false);
-window.addEventListener("unload", Zotero_Abbreviations_Import.onUnload, false);
-window.addEventListener("abort", Zotero_Abbreviations_Import.onUnload, false);
+window.addEventListener("load", Abbrevs_Filter_Import.onLoad, false);
+window.addEventListener("unload", Abbrevs_Filter_Import.onUnload, false);
+window.addEventListener("abort", Abbrevs_Filter_Import.onUnload, false);
