@@ -28,12 +28,16 @@
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
+dump("XXX HELLO\n");
+
+
 function ifZotero(succeed, fail) {
     var ZoteroClass = Cc["@zotero.org/Zotero;1"];
     if (ZoteroClass) {
         Zotero = ZoteroClass
 	        .getService(Ci.nsISupports)
 	        .wrappedJSObject;
+        dump("XXX Found Zotero, yay\n");
         succeed ? succeed(Zotero) : null;
     } else {
         fail ? fail() : null;
@@ -44,12 +48,18 @@ function UiObserver() {
 }
 UiObserver.prototype = {
     observe: function(subject, topic, data) {
+        dump("XXX Triggered observer, yay\n");
         ifZotero(
             function (Zotero) {
-                var AFZ = Components.classes['@juris-m.github.io/abbrevs-filter;1']
-                    .getService(Components.interfaces.nsISupports)
-                    .wrappedJSObject;
-                AFZ.initComponent(Zotero);
+                try {
+                    var AFZ = Components.classes['@juris-m.github.io/abbrevs-filter;1']
+                        .getService(Components.interfaces.nsISupports)
+                        .wrappedJSObject;
+                    dump("XXX Init abbrevs filter, yay\n");
+                    AFZ.initComponent(Zotero);
+                } catch (e) {
+                    dump("XXX HOWDY: "+e+"\n");
+                }
             },
             null
         );
@@ -68,65 +78,55 @@ UiObserver.prototype = {
 var uiObserver = new UiObserver();
 
 
+var WrappedAbbrevsFilter = this;
 
+Components.utils["import"]("resource://gre/modules/XPCOMUtils.jsm");
+//Components.utils.import("resource://gre/modules/AddonManager.jsm");
 
+var xpcomFiles = [
+	"load",
+    "update",
+	"window",
+    "style",
+    "adddel",
+    "csl-get-abbreviation",
+    "csl-get-suppress-jurisdictions",
+	"import",
+	"export"
+];
 
-try {
-    var WrappedAbbrevsFilter = this;
-
-    Components.utils["import"]("resource://gre/modules/XPCOMUtils.jsm");
-
-    var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
-        .getService(Components.interfaces.nsIXULAppInfo);
-    if(appInfo.platformVersion[0] >= 2) {
-	    Components.utils.import("resource://gre/modules/AddonManager.jsm");
-    }
-
-    var xpcomFiles = [
-	    "load",
-        "update",
-	    "window",
-        "style",
-        "adddel",
-        "csl-get-abbreviation",
-        "csl-get-suppress-jurisdictions",
-	    "import",
-	    "export"
-    ];
-
-    for (var i=0, ilen=xpcomFiles.length; i < ilen; i += 1) {
-	    Cc["@mozilla.org/moz/jssubscript-loader;1"]
-		    .getService(Ci.mozIJSSubScriptLoader)
-		    .loadSubScript("chrome://abbrevs-filter/content/xpcom/" + xpcomFiles[i] + ".js");
-    }
-
-    var AbbrevsFilter = new AbbrevsFilter();
-
-    function setupService(){
-	    try {
-		    AbbrevsFilter.init();
-	    } catch (e) {
-		    var msg = typeof e == 'string' ? e : e.name;
-		    Components.utils.reportError(e);
-		    throw (e);
-	    }
-    }
-
-    function AbbrevsFilterService() { 
-	    this.wrappedJSObject = WrappedAbbrevsFilter.AbbrevsFilter;
-	    setupService();
-    }
-
-    AbbrevsFilterService.prototype = {
-        classDescription: 'Juris-M Abbreviation Filter',
-        classID:          Components.ID("{e2731ad0-8426-11e0-9d78-0800200c5798}"),
-        contractID:       '@juris-m.github.io/abbrevs-filter;1',
-        service: true,
-        QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsISupports])
-    };
-} catch (e) {
-    dump("XXX DUMP: "+e+"\n");
+for (var i=0, ilen=xpcomFiles.length; i < ilen; i += 1) {
+    dump("XXX LOADING: "+xpcomFiles[i]+"\n");
+	Cc["@mozilla.org/moz/jssubscript-loader;1"]
+		.getService(Ci.mozIJSSubScriptLoader)
+		.loadSubScript("chrome://abbrevs-filter/content/xpcom/" + xpcomFiles[i] + ".js");
 }
+
+var AbbrevsFilter = new AbbrevsFilter();
+
+/*
+function setupService(){
+	try {
+		AbbrevsFilter.init();
+	} catch (e) {
+		var msg = typeof e == 'string' ? e : e.name;
+		Components.utils.reportError(e);
+		throw (e);
+	}
+}
+*/
+
+function AbbrevsFilterService() { 
+	this.wrappedJSObject = WrappedAbbrevsFilter.AbbrevsFilter;
+}
+
+AbbrevsFilterService.prototype = {
+    classDescription: 'Juris-M Abbreviation Filter',
+    classID:          Components.ID("{e2731ad0-8426-11e0-9d78-0800200c5798}"),
+    contractID:       '@juris-m.github.io/abbrevs-filter;1',
+    service: true,
+    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsISupports])
+};
 
 if (XPCOMUtils.generateNSGetFactory) {
 	var NSGetFactory = XPCOMUtils.generateNSGetFactory([AbbrevsFilterService]);

@@ -3,6 +3,6 @@
 <!DOCTYPE overlay SYSTEM "chrome://abbrevs-filter/locale/addCitationDialog.dtd">
 <overlay id="abbrevs-filter-addCitationDialog" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <script src="csleditOverly.js"/>
+  <script src="csleditOverlay.js"/>
 
 </overlay>
