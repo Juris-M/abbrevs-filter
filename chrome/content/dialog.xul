@@ -5,18 +5,18 @@
 <?xml-stylesheet href="chrome://abbrevs-filter/skin/overlay.css" type="text/css"?>
 <?xml-stylesheet href="chrome://abbrevs-filter-platform/content/overlay.css" type="text/css"?>
 <?xml-stylesheet href="chrome://abbrevs-filter/skin/integration.css" type="text/css"?>
-<!DOCTYPE window SYSTEM "chrome://abbrevs-filter/locale/subpopup.dtd">
+<!DOCTYPE window SYSTEM "chrome://abbrevs-filter/locale/dialog.dtd">
 
 <!-- windowtype="zotero:item-selector" -->
 
 <dialog
-	id="abbrevs-filter-subpopup"
+	id="abbrevs-filter-dialog"
 	orient="vertical"
-	title="&abbrevs-filter.subpopupTitle;"
+	title="&abbrevs-filter.dialogTitle;"
 	width="800" height="500"
 	minwidth="800" minheight="500"
-    onload="Abbrevs_Filter_Subpopup.init();"
-    ondialogaccept="Abbrevs_Filter_Subpopup.saveField(event);window.close();"
+    onload="Abbrevs_Filter_Dialog.init();"
+    ondialogaccept="Abbrevs_Filter_Dialog.saveField(event);window.close();"
 	ondialogextra1="AbbrevsFilter.exportList(window, document);"
 	ondialogextra2="AbbrevsFilter.importList(window, document);"
     buttonlabelaccept="Save"
@@ -27,7 +27,7 @@
 	resizable="true"
 	buttons="accept,cancel,extra1,extra2">
 
-  	<script src="subpopup.js"/>
+  	<script src="dialog.js"/>
 
   <groupbox orient="vertical">
     <!-- style name -->
@@ -46,7 +46,7 @@
                  type="autocomplete" 
                  autocompletesearch="zotero" 
                  autocompletesearchparam='{"fieldName":"jurisdictions"}'
-                 ontextentered="Abbrevs_Filter_Subpopup.handleJurisdictionAutoCompleteSelect(this);"/>
+                 ontextentered="Abbrevs_Filter_Dialog.handleJurisdictionAutoCompleteSelect(this);"/>
         <hbox flex="1"/>
       </vbox>
       <hbox flex="1" id="suppression-list" style="display:block;word-wrap:break-word;"/>

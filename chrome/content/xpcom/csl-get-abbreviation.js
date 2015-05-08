@@ -1,56 +1,9 @@
-// Peformance ideas
-
-// Get rid of the statements. They don't seem to help. If we're going
-// to be waiting on a progress meter anyway, we might as well do so with
-// comprehensible code.
-
-// Create an abbreviationsIdx index, and use it. Upgrade client
-// databases to include it.
-
-// Use a more efficient shortcut method for first-time database
-// creation.
-
-// Consider pre-loading the SQL for default list content if
-// all else fails.
-
-
 AbbrevsFilter.prototype.attachGetAbbreviation = function (Zotero) {
     var db = this.db;
     var addOrDeleteEntry = this.addOrDeleteEntry;
     var CSL = Zotero.CiteProc.CSL;
     this.citeproc = CSL;
     var AbbrevsFilter = this;
-
-    // Install method to initialize a copy of the current suppression list shared with the processor
-
-    this.suppressJurisdictions = {};
-    var _suppressJurisdictions = this.suppressJurisdictions;
-
-    CSL.getSuppressJurisdictions = function (styleID) {
-        for (var key in _suppressJurisdictions) {
-            delete _suppressJurisdictions[key];
-        }
-        var sql = "SELECT jurisdiction FROM suppressme "
-            + "JOIN jurisdiction USING(jurisdictionID) "
-            + "JOIN list USING(listID) "
-            + "WHERE list=?;";
-        var jurisdictionList = AbbrevsFilter.db.columnQuery(sql,[styleID]);
-        var results;
-        if (jurisdictionList) {
-            jurisdictionList = "'" + jurisdictionList.join("','") + "'";
-		    var sql = 'SELECT jurisdictionName as val,jurisdictionID as comment FROM jurisdictions '
-			    + 'WHERE jurisdictionID IN (' + jurisdictionList + ') ORDER BY jurisdictionName;'
-            results = Zotero.DB.query(sql);
-        } else {
-            results = [];
-        }
-        for (var i=0,ilen=results.length;i<ilen;i+=1) {
-            var result = results[i];
-            _suppressJurisdictions[result.comment] = result.val;
-        }
-        return _suppressJurisdictions
-    }
-
 
     // Install a custom abbreviations handler on the processor.
     CSL.getAbbreviation = function (listname, obj, jurisdiction, category, key, itemType, noHints) {

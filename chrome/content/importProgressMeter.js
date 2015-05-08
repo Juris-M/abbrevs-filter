@@ -8,6 +8,8 @@ var Abbrevs_Filter_Import = new function () {
         .getService(Components.interfaces.nsISupports)
         .wrappedJSObject;
 
+    AFZ.resetResourceCache();
+
     var totalAbbrevs, runningTotal, progressMeter, batchSpecs, batchPos, versionUpdateCallback;
 
     this.onLoad = onLoad;
@@ -15,26 +17,11 @@ var Abbrevs_Filter_Import = new function () {
 
     var listsForUpdate = {};
 
-    function getDBVersion (facility) {
-	if (AFZ.db.tableExists("version")) {
-            var sql = "SELECT version FROM version WHERE schema=?";
-            var dbVersion = AFZ.db.valueQuery(sql,[facility]);
-            if (dbVersion) {
-                dbVersion = parseInt(dbVersion, 10);
-            } else {
-                dbVersion = 0;
-            }
-        } else {
-            dbVersion = 0;
-        }
-        return dbVersion;
-    }
-
     function prepareUpdate() {
         try {
             // We don't use these yet, but there they are
             var schemaDataVersion = AFZ.getResourceObject("segments").version;
-            var dbDataVersion = getDBVersion('data');
+            var dbDataVersion = AFZ.getDBVersion('data');
             // Lists may change from time to time, though, and they should at least fill gaps
             // on install when they do.
             // ...
@@ -48,7 +35,7 @@ var Abbrevs_Filter_Import = new function () {
                 var filename = directoryMap[i].filename;
                 var filestub = filename.slice(0,-5);
                 var listJsonVersion = directoryMap[i].version;
-                var listDatabaseVersion = getDBVersion(filestub);
+                var listDatabaseVersion = AFZ.getDBVersion(filestub);
                 // ... and build a map of lists for update, with target version increments
                 if (!listDatabaseVersion || listDatabaseVersion < listJsonVersion) {
                     listsForUpdate[filestub] = listJsonVersion;
@@ -128,7 +115,7 @@ var Abbrevs_Filter_Import = new function () {
                 AFZ.db.commitTransaction();
 		        if (window.arguments[0].wrappedJSObject.spec) {
 		            for (var listID in listsForUpdate) {
-			            setDBVersion(listID,listsForUpdate[listID]);
+			            AFZ.setDBVersion(listID,listsForUpdate[listID]);
 		            }
 		        }
                 close();

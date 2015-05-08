@@ -1,20 +1,23 @@
 AbbrevsFilter = Components.classes['@juris-m.github.io/abbrevs-filter;1'].getService(Components.interfaces.nsISupports).wrappedJSObject;
 
-var Abbrevs_Filter_Subpopup = new function () {
+var Abbrevs_Filter_Dialog = new function () {
 
     var io = window.arguments[0]
-    var AFZ = io.AFZ;
-    // XXX non-dynamic. Do these values change ever?
     var style = io.style;
-    var listname = style.opt.styleID;
-    var listTitle = style.opt.styleName ? style.opt.styleName : style.opt.styleID;
+    var transform = io.style.transform;
 
+    var AFZ = io.AFZ;
     var Zotero = AFZ.Zotero;
     var CSL = Zotero.CiteProc.CSL;
-    var addOrDeleteEntry = AFZ.addOrDeleteEntry;
-    var _suppressJurisdictions = AFZ.suppressJurisdictions;
+    var _suppress = AFZ.getSuppressJurisdictions(listname);
+    var listname = style.opt.styleID;
+    var listTitle = style.opt.styleName ? style.opt.styleName : style.opt.styleID;
+    // This is not so good. AFZ values are global to the component,
+    // so this will shift around as the user accesses different
+    // open documents. Might do no harm, but it doesn't seem very clean.
+    AFZ.listname = listname;
 
-    var transform = io.style.transform;
+    var addOrDeleteEntry = AFZ.addOrDeleteEntry;
 
     this.init = init;
     this.handleJurisdictionAutoCompleteSelect = handleJurisdictionAutoCompleteSelect;
@@ -22,7 +25,6 @@ var Abbrevs_Filter_Subpopup = new function () {
 
     var openFieldParent = null;
 
-    AFZ.listname = listname;
 
     // Strings and things.
     var stringBundle = Components.classes["@mozilla.org/intl/stringbundle;1"]
@@ -37,7 +39,7 @@ var Abbrevs_Filter_Subpopup = new function () {
 
     function init() {
 
-        var dialog = document.getElementById("abbrevs-filter-subpopup");
+        var dialog = document.getElementById("abbrevs-filter-dialog");
         var categories = [];
         for (var value in style.transform.abbrevs["default"]) {
             if (["container-phrase", "title-phrase"].indexOf(value) > -1) {
@@ -110,21 +112,11 @@ var Abbrevs_Filter_Subpopup = new function () {
          * Jurisdiction suppression UI initialization
          */
 
-        CSL.getSuppressJurisdictions(listname);
-
-        for (var comment in _suppressJurisdictions) {
-            setJurisdictionNode(comment, _suppressJurisdictions[comment]);
+        for (var comment in _suppress) {
+            setJurisdictionNode(comment, _suppress[comment]);
         }
-
         var suppressionAutocomplete = document.getElementById("suppression-autocomplete");
-        
-        /////// suppressionAutocomplete.addEventListener("keypress", handleJurisdictionKeypress, false);
-        
-        //suppressionAutocomplete.addEventListener("textentered", handleJurisdictionAutoCompleteSelect);
-
     }
-
-    //AFZ.listname = listname;
 
     function handleJurisdictionAutoCompleteSelect (textbox) {
 		var result;
@@ -286,7 +278,7 @@ var Abbrevs_Filter_Subpopup = new function () {
             rawval = raw.getAttribute("system_id");
         }
 
-        addOrDeleteEntry(listname, jurisdiction, category, rawval, abbrevval);
+        AFZ.addOrDeleteEntry(listname, jurisdiction, category, rawval, abbrevval);
 
         // Reverse remap hereinafter key here
         if ("hereinafter" === category) {
@@ -485,14 +477,14 @@ var Abbrevs_Filter_Subpopup = new function () {
         // XXX Memory and DB
         var result = confirmJurisdictionValues(jurisdiction,listname);
         addJurisdictionValues(result);
-        _suppressJurisdictions[jurisdiction] = true;
+        _suppress[jurisdiction] = true;
     }
 
     function removeFromSuppressJurisdictions (jurisdiction) {
         // XXX Memory and DB
         var result = confirmJurisdictionValues(jurisdiction,listname);
         removeJurisdictionValues(result);
-        delete _suppressJurisdictions[jurisdiction];
+        delete _suppress[jurisdiction];
     }
 
     function addJurisdictionValues(result) {

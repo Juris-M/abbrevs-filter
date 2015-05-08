@@ -28,76 +28,105 @@
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
-var WrappedAbbrevsFilter = this;
-
-dump("XXX DUMP (1)!\n");
-
-Components.utils["import"]("resource://gre/modules/XPCOMUtils.jsm");
-
-var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
-                         .getService(Components.interfaces.nsIXULAppInfo);
-if(appInfo.platformVersion[0] >= 2) {
-	Components.utils.import("resource://gre/modules/AddonManager.jsm");
+function ifZotero(succeed, fail) {
+    var ZoteroClass = Cc["@zotero.org/Zotero;1"];
+    if (ZoteroClass) {
+        Zotero = ZoteroClass
+	        .getService(Ci.nsISupports)
+	        .wrappedJSObject;
+        succeed ? succeed(Zotero) : null;
+    } else {
+        fail ? fail() : null;
+    }
 }
-
-var xpcomFiles = [
-	"load",
-	"main",
-    "getabbr",
-	"import",
-	"export"
-];
-
-dump("XXX DUMPx (2)!\n");
-
-for (var i=0, ilen=xpcomFiles.length; i < ilen; i += 1) {
-	dump("XXX Load " + xpcomFiles[i] + ".js (or die trying)\n");
-	//try {
-		Cc["@mozilla.org/moz/jssubscript-loader;1"]
-			.getService(Ci.mozIJSSubScriptLoader)
-			.loadSubScript("chrome://abbrevs-filter/content/xpcom/" + xpcomFiles[i] + ".js");
-	//}
-	//catch (e) {
-	//	dump("Error loading " + xpcomFiles[i] + ".js\n");
-	//	Components.utils.reportError("Error loading " + xpcomFiles[i] + ".js");
-	//	throw (e);
-	//}
+function UiObserver() {
+    this.register();
 }
-
-dump("XXX DUMPx (3)!\n");
-
-
-var AbbrevsFilter = new AbbrevsFilter();
-
-function setupService(){
-	try {
-		AbbrevsFilter.init();
-	} catch (e) {
-		var msg = typeof e == 'string' ? e : e.name;
-		Components.utils.reportError(e);
-		throw (e);
-	}
+UiObserver.prototype = {
+    observe: function(subject, topic, data) {
+        ifZotero(
+            function (Zotero) {
+                var AFZ = Components.classes['@juris-m.github.io/abbrevs-filter;1']
+                    .getService(Components.interfaces.nsISupports)
+                    .wrappedJSObject;
+                AFZ.initComponent(Zotero);
+            },
+            null
+        );
+    },
+    register: function() {
+        var observerService = Components.classes["@mozilla.org/observer-service;1"]
+            .getService(Components.interfaces.nsIObserverService);
+        observerService.addObserver(this, "final-ui-startup", false);
+    },
+    unregister: function() {
+        var observerService = Components.classes["@mozilla.org/observer-service;1"]
+            .getService(Components.interfaces.nsIObserverService);
+        observerService.removeObserver(this, "final-ui-startup");
+    }
 }
+var uiObserver = new UiObserver();
 
-dump("XXX DUMP (4)!\n");
 
 
-function AbbrevsFilterService() { 
-	this.wrappedJSObject = WrappedAbbrevsFilter.AbbrevsFilter;
-	setupService();
+
+
+try {
+    var WrappedAbbrevsFilter = this;
+
+    Components.utils["import"]("resource://gre/modules/XPCOMUtils.jsm");
+
+    var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
+        .getService(Components.interfaces.nsIXULAppInfo);
+    if(appInfo.platformVersion[0] >= 2) {
+	    Components.utils.import("resource://gre/modules/AddonManager.jsm");
+    }
+
+    var xpcomFiles = [
+	    "load",
+        "update",
+	    "window",
+        "style",
+        "adddel",
+        "csl-get-abbreviation",
+        "csl-get-suppress-jurisdictions",
+	    "import",
+	    "export"
+    ];
+
+    for (var i=0, ilen=xpcomFiles.length; i < ilen; i += 1) {
+	    Cc["@mozilla.org/moz/jssubscript-loader;1"]
+		    .getService(Ci.mozIJSSubScriptLoader)
+		    .loadSubScript("chrome://abbrevs-filter/content/xpcom/" + xpcomFiles[i] + ".js");
+    }
+
+    var AbbrevsFilter = new AbbrevsFilter();
+
+    function setupService(){
+	    try {
+		    AbbrevsFilter.init();
+	    } catch (e) {
+		    var msg = typeof e == 'string' ? e : e.name;
+		    Components.utils.reportError(e);
+		    throw (e);
+	    }
+    }
+
+    function AbbrevsFilterService() { 
+	    this.wrappedJSObject = WrappedAbbrevsFilter.AbbrevsFilter;
+	    setupService();
+    }
+
+    AbbrevsFilterService.prototype = {
+        classDescription: 'Juris-M Abbreviation Filter',
+        classID:          Components.ID("{e2731ad0-8426-11e0-9d78-0800200c5798}"),
+        contractID:       '@juris-m.github.io/abbrevs-filter;1',
+        service: true,
+        QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsISupports])
+    };
+} catch (e) {
+    dump("XXX DUMP: "+e+"\n");
 }
-
-dump("XXX DUMP (5)!\n");
-
-AbbrevsFilterService.prototype = {
-  classDescription: 'Juris-M Abbreviation Filter',
-  classID:          Components.ID("{e2731ad0-8426-11e0-9d78-0800200c5798}"),
-  contractID:       '@juris-m.github.io/abbrevs-filter;1',
-  service: true,
-  QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsISupports])
-};
-
-dump("XXX DUMP (6)!\n");
 
 if (XPCOMUtils.generateNSGetFactory) {
 	var NSGetFactory = XPCOMUtils.generateNSGetFactory([AbbrevsFilterService]);
