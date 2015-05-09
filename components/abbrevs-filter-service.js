@@ -28,60 +28,13 @@
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
-dump("XXX HELLO\n");
-
-
-function ifZotero(succeed, fail) {
-    var ZoteroClass = Cc["@zotero.org/Zotero;1"];
-    if (ZoteroClass) {
-        Zotero = ZoteroClass
-	        .getService(Ci.nsISupports)
-	        .wrappedJSObject;
-        dump("XXX Found Zotero, yay\n");
-        succeed ? succeed(Zotero) : null;
-    } else {
-        fail ? fail() : null;
-    }
-}
-function UiObserver() {
-    this.register();
-}
-UiObserver.prototype = {
-    observe: function(subject, topic, data) {
-        dump("XXX Triggered observer, yay\n");
-        ifZotero(
-            function (Zotero) {
-                try {
-                    var AFZ = Components.classes['@juris-m.github.io/abbrevs-filter;1']
-                        .getService(Components.interfaces.nsISupports)
-                        .wrappedJSObject;
-                    dump("XXX Init abbrevs filter, yay\n");
-                    AFZ.initComponent(Zotero);
-                } catch (e) {
-                    dump("XXX HOWDY: "+e+"\n");
-                }
-            },
-            null
-        );
-    },
-    register: function() {
-        var observerService = Components.classes["@mozilla.org/observer-service;1"]
-            .getService(Components.interfaces.nsIObserverService);
-        observerService.addObserver(this, "final-ui-startup", false);
-    },
-    unregister: function() {
-        var observerService = Components.classes["@mozilla.org/observer-service;1"]
-            .getService(Components.interfaces.nsIObserverService);
-        observerService.removeObserver(this, "final-ui-startup");
-    }
-}
-var uiObserver = new UiObserver();
-
-
 var WrappedAbbrevsFilter = this;
+
+dump("XXX HELLO\n");
 
 Components.utils["import"]("resource://gre/modules/XPCOMUtils.jsm");
 //Components.utils.import("resource://gre/modules/AddonManager.jsm");
+
 
 var xpcomFiles = [
 	"load",
@@ -104,17 +57,15 @@ for (var i=0, ilen=xpcomFiles.length; i < ilen; i += 1) {
 
 var AbbrevsFilter = new AbbrevsFilter();
 
-/*
 function setupService(){
 	try {
-		AbbrevsFilter.init();
+		AbbrevsFilter.initComponent();
 	} catch (e) {
 		var msg = typeof e == 'string' ? e : e.name;
 		Components.utils.reportError(e);
 		throw (e);
 	}
 }
-*/
 
 function AbbrevsFilterService() { 
 	this.wrappedJSObject = WrappedAbbrevsFilter.AbbrevsFilter;

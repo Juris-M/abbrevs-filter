@@ -158,7 +158,7 @@ zoteromergepane {
 
 dialog[resizable="true"]
 {
-	-moz-binding: url('chrome://zotero/content/bindings/resizabledialog.xml#resizabledialog');
+	-moz-binding: url('chrome://jurism/content/bindings/resizabledialog.xml#resizabledialog');
 }
 
 .zotero-langy {

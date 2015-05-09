@@ -1,17 +1,18 @@
 AbbrevsFilter.prototype.updateDB = function () {
-
-    var sql = this.Zotero.File.getContentsFromURL("resource://abbrevs-filter/schema/abbrevs-filter.sql");
+    var Zotero = this.Zotero;
+    var sql = Zotero.File.getContentsFromURL("resource://abbrevs-filter/schema/abbrevs-filter.sql");
+    dump("XXX HERE BE ME SCHEMA\n"+sql+"\n");
     var version = parseInt(sql.match(/^-- ([0-9]+)/)[1]);
 
     if (!this.db.tableExists("abbreviations")) {
         Zotero.debug("AFZ: [SETUP] no abbreviations table table found, performing scratch install)");
 	    this.db.query(sql);
-        setDBVersion('abbreviations', version);
+        this.setDBVersion('abbreviations', version);
         if (!this.installInProgress) {
             AbbrevsFilter.launchImportProgressMeter();
         }
     } else {
-        var dbVersion = getDBVersion('abbreviations');
+        var dbVersion = this.getDBVersion('abbreviations');
         if (version > dbVersion) {
             Zotero.debug("AFZ: [SETUP] upgrading database schema to version " + version);
             
@@ -28,7 +29,7 @@ AbbrevsFilter.prototype.updateDB = function () {
                     //   Do stuff
                     //}
                 }
-                setDBVersion('abbreviations', version);
+                this.setDBVersion('abbreviations', version);
                 this.db.commitTransaction();
 		        
             } catch (e) {

@@ -1,12 +1,12 @@
 AbbrevsFilter = function () {
     this._suppress = {};
     this.resource_cache = {};
-    this.updateDB();
 };
 
 AbbrevsFilter.prototype.initComponent = function(Zotero) {
     this.Zotero = Zotero;
     this.db = new this.Zotero.DBConnection("abbrevs-filter");
+    this.updateDB();
     this.addOrDeleteEntry = this.getAddOrDeleteEntry();
 }
 
@@ -43,7 +43,7 @@ AbbrevsFilter.prototype.getDBVersion = function(facility) {
 
 AbbrevsFilter.prototype.getResourceObject = function (id) {
     if (!this.resource_cache[id]) {
-        this.resource_cache[id] = JSON.parse(this.Zotero.getContentsFromURL("resource://abbrevs-filter/" + id + ".json"));
+        this.resource_cache[id] = JSON.parse(this.Zotero.File.getContentsFromURL("resource://abbrevs-filter/" + id + ".json"));
     }
     return this.resource_cache[id];
 }

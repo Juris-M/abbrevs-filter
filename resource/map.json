@@ -13,19 +13,5 @@
         "primary-jurisdictions",
         "primary-international-bluebook",
         "primary-commonwealth"
-	],
-	"http://citationstylist.org/styles/mlz-new-zealand-law":[
-		"secondary-commonwealth-commonwealth",
-        "primary-us",
-        "primary-jurisdictions",
-        "primary-international-commonwealth",
-        "primary-commonwealth"
-	],
-	"http://citationstylist.org/styles/mlz-oscola":[
-		"secondary-commonwealth-commonwealth",
-        "primary-us",
-        "primary-jurisdictions",
-        "primary-international-commonwealth",
-        "primary-commonwealth"
 	]
 }

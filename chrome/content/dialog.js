@@ -9,13 +9,14 @@ var Abbrevs_Filter_Dialog = new function () {
     var AFZ = io.AFZ;
     var Zotero = AFZ.Zotero;
     var CSL = Zotero.CiteProc.CSL;
-    var _suppress = AFZ.getSuppressJurisdictions(listname);
     var listname = style.opt.styleID;
     var listTitle = style.opt.styleName ? style.opt.styleName : style.opt.styleID;
     // This is not so good. AFZ values are global to the component,
     // so this will shift around as the user accesses different
     // open documents. Might do no harm, but it doesn't seem very clean.
     AFZ.listname = listname;
+    AFZ.setSuppressJurisdictions(listname);
+    var _suppress = AFZ._suppress;
 
     var addOrDeleteEntry = AFZ.addOrDeleteEntry;
 
