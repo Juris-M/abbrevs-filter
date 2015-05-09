@@ -15,7 +15,6 @@ var Abbrevs_Filter_Dialog = new function () {
     // so this will shift around as the user accesses different
     // open documents. Might do no harm, but it doesn't seem very clean.
     AFZ.listname = listname;
-    AFZ.setSuppressJurisdictions(listname);
     var _suppress = AFZ._suppress;
 
     var addOrDeleteEntry = AFZ.addOrDeleteEntry;

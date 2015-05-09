@@ -1,5 +1,4 @@
 AbbrevsFilter.prototype.getAddOrDeleteEntry = function() {
-    dump("XXX addOrDeleteEntry()\n");
     // Predefined statements
     var stmt = {};
     stmt.listSelect = this.db.getStatement("SELECT listID FROM list WHERE list=?");

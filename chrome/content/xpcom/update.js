@@ -1,7 +1,6 @@
 AbbrevsFilter.prototype.updateDB = function () {
     var Zotero = this.Zotero;
     var sql = Zotero.File.getContentsFromURL("resource://abbrevs-filter/schema/abbrevs-filter.sql");
-    dump("XXX HERE BE ME SCHEMA\n"+sql+"\n");
     var version = parseInt(sql.match(/^-- ([0-9]+)/)[1]);
 
     if (!this.db.tableExists("abbreviations")) {

@@ -30,8 +30,6 @@ const Ci = Components.interfaces;
 
 var WrappedAbbrevsFilter = this;
 
-dump("XXX HELLO\n");
-
 Components.utils["import"]("resource://gre/modules/XPCOMUtils.jsm");
 //Components.utils.import("resource://gre/modules/AddonManager.jsm");
 
@@ -43,13 +41,12 @@ var xpcomFiles = [
     "style",
     "adddel",
     "csl-get-abbreviation",
-    "csl-get-suppress-jurisdictions",
+    "csl-suppress-jurisdictions",
 	"import",
 	"export"
 ];
 
 for (var i=0, ilen=xpcomFiles.length; i < ilen; i += 1) {
-    dump("XXX LOADING: "+xpcomFiles[i]+"\n");
 	Cc["@mozilla.org/moz/jssubscript-loader;1"]
 		.getService(Ci.mozIJSSubScriptLoader)
 		.loadSubScript("chrome://abbrevs-filter/content/xpcom/" + xpcomFiles[i] + ".js");

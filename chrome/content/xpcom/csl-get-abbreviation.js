@@ -1,4 +1,5 @@
-AbbrevsFilter.prototype.attachGetAbbreviation = function (Zotero) {
+AbbrevsFilter.prototype.attachGetAbbreviation = function () {
+    var Zotero = this.Zotero;
     var db = this.db;
     var addOrDeleteEntry = this.addOrDeleteEntry;
     var CSL = Zotero.CiteProc.CSL;
