@@ -38,7 +38,9 @@ function add-xpi-to-github-release () {
 
 function publish-update () {
     # Generate a signed update manifest
-    uhura -o update-TRANSFER.rdf -k ~/juris-m-distrib-keys/keyfile.pem -p "@${HOME}/bin/doorkey-jaggies.txt" "${RELEASE_DIR}/${CLIENT}-v${VERSION}.xpi" "https://github.com/Juris-M/${FORK}/releases/download/v${VERSION_STUB}/${CLIENT}-v${VERSION}.xpi"
+    echo PRIVATES: "~/juris-m-distrib-keys/keyfile.pem"
+    echo JAGGIES: "${HOME}/bin/doorkey-jaggies.txt"
+    uhura -o update-TRANSFER.rdf -k "${HOME}/juris-m-distrib-keys/keyfile.pem" -p "@${HOME}/bin/doorkey-jaggies.txt" "${RELEASE_DIR}/${CLIENT}-v${VERSION}.xpi" "https://github.com/Juris-M/${FORK}/releases/download/v${VERSION_STUB}/${CLIENT}-v${VERSION}.xpi"
     # Slip the update manifest over to the gh-pages branch, commit, and push
     git checkout gh-pages >> "${LOG_FILE}" 2<&1
     if [ ! -f update.rdf ]; then
