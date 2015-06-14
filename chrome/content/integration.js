@@ -4,6 +4,11 @@ window.addEventListener("load", function () {
 
     var hasEngine = false;
 
+    // Strings and things.
+    var stringBundle = Components.classes["@mozilla.org/intl/stringbundle;1"]
+        .getService(Components.interfaces.nsIStringBundleService)
+        .createBundle("chrome://abbrevs-filter/locale/overlay.properties")
+
     var dialog = document.getElementById("zotero-add-citation-dialog");
     
 	var menubar = document.createElement("hbox");
