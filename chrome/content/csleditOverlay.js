@@ -26,6 +26,7 @@ window.addEventListener("load", function () {
                     style:csleditor.styleEngine,
                     AFZ: AbbrevsFilter
                 };
+                io.wrappedJSObject = io;
                 window.openDialog('chrome://abbrevs-filter/content/dialog.xul', 'AbbrevsFilterDialog', 'chrome,centerscreen,alwaysRaised,modal',io);
             }, false);
             hasEngine = true;
