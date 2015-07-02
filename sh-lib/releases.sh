@@ -39,9 +39,18 @@ function add-xpi-to-github-release () {
 function publish-update () {
     # Prepare the update manifest
     cp update-TEMPLATE.rdf update-TRANSFER.rdf
-    sed -si "s/<em:version>.*<\/em:version>/<em:version>${VERSION_STUB}<\/em:version>/" update-TRANSFER.rdf
-    sed -si "s/\/.*\/.*<\/em:updateLink>/\/v${VERSION_STUB}\/${CLIENT}-v${VERSION_STUB}.xpi<\/em:updateLink>/" update-TRANSFER.rdf
-
+    sed -si "s/\(<em:version>\).*\(<\/em:version>\)/\\1${VERSION_STUB}\\2/" update-TRANSFER.rdf
+    sed -si "s/\(<em:updateLink>.*download\/\).*\(<\/em:updateLink>\)/\\1v${VERSION_STUB}\/${CLIENT}-v${VERSION_STUB}.xpi\\2/" update-TRANSFER.rdf
+    ~/src/mccoy/mccoy
+    echo -n "Proceed? (y/n): "
+    read CHOICE
+    if [ "${CHOICE}" == "y" ]; then
+        echo Okay, here goes ...
+    else
+        echo Aborting
+        exit 1
+    fi
+    # Slip to gh-pages
     git checkout gh-pages >> "${LOG_FILE}" 2<&1
     if [ ! -f update.rdf ]; then
         echo "XXX" > update.rdf
