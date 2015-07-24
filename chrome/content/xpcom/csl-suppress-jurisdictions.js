@@ -7,7 +7,11 @@ AbbrevsFilter.prototype.attachGetSuppressJurisdictions = function() {
     CSL.suppressJurisdictions = function (codeStr, humanStr) {
         var codeLst = codeStr.split(':');
         if (_suppress[codeLst[0]]) {
-            humanStr = humanStr.split('|').slice(1).join('|');
+            if (codeLst.length == 1) {
+                humanStr = humanStr.split('|').slice(2).join('|');
+            } else {
+                humanStr = humanStr.split('|').slice(1).join('|');
+            }
         }
         return humanStr;
     }
