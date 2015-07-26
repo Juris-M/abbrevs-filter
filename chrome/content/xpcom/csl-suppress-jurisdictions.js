@@ -6,11 +6,25 @@ AbbrevsFilter.prototype.attachGetSuppressJurisdictions = function() {
     
     CSL.suppressJurisdictions = function (codeStr, humanStr) {
         var codeLst = codeStr.split(':');
+        var humanLst = humanStr.split("|");
+        var isValid;
+        if (codeLst.length == 1) {
+            if (humanLst.length == 1) {
+                humanLst = [humanLst[0], codeLst[0].toUpperCase()];                
+            }
+            isValid = (humanLst.length == 2 && humanLst[1] == codeLst[0].toUpperCase());
+        } else {
+            if (humanLst.length == codeLst.length-1 && humanLst[0].toLowerCase() != codeLst[0]) {
+                humanLst = [codeLst[0].toUpperCase()].concat(humanLst);
+            }
+            isValid = (humanLst.length == codeLst.length && humanLst[0] == codeLst[0]);
+        }
+        if (!isValid) return humanStr;
         if (_suppress[codeLst[0]]) {
             if (codeLst.length == 1) {
-                humanStr = humanStr.split('|').slice(2).join('|');
+                humanStr = humanLst.slice(2).join('|');
             } else {
-                humanStr = humanStr.split('|').slice(1).join('|');
+                humanStr = humanLst.slice(1).join('|');
             }
         }
         return humanStr;
