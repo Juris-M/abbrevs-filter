@@ -390,7 +390,7 @@ var Abbrevs_Filter_Dialog = new function () {
 		}
         if (result) {
             setJurisdictionNode(result.comment,result.val);
-            addToSuppressJurisdictions(result.comment);
+            addToSuppressJurisdictions(result.comment, result.val);
         }
         textbox.value = '';
         textbox.blur();
@@ -438,14 +438,14 @@ var Abbrevs_Filter_Dialog = new function () {
         // XXX Memory and DB
         var result = confirmJurisdictionValues(jurisdiction,listname);
         addJurisdictionValues(result);
-        _suppress[jurisdiction] = jurisdictionName;
+        io.style.opt.suppressedJurisdictions[jurisdiction] = jurisdictionName;
     }
 
     function removeFromSuppressJurisdictions (jurisdiction) {
         // XXX Memory and DB
         var result = confirmJurisdictionValues(jurisdiction,listname);
         removeJurisdictionValues(result);
-        delete _suppress[jurisdiction];
+        delete io.style.opt.suppressedJurisdictions[jurisdiction];
     }
 
     function addJurisdictionValues(result) {

@@ -34,7 +34,6 @@ AbbrevsFilter.prototype.attachSetSuppressJurisdictions = function() {
     var AbbrevsFilter = this;
     var Zotero = this.Zotero;
     var CSL = Zotero.CiteProc.CSL;
-    var listname = this.citeproc.opt.styleID;
     
     CSL.setSuppressedJurisdictions = function(styleID, suppressedJurisdictions) {
         var sql = "SELECT jurisdiction FROM suppressme "
