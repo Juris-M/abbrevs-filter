@@ -27,9 +27,6 @@ var Abbrevs_Filter_Dialog = new function () {
     var CSL = Zotero.CiteProc.CSL;
     var addOrDeleteEntry = AFZ.addOrDeleteEntry;
 
-    // Suppressed jurisdictions
-    var _suppress = AFZ._suppress;
-
     var category = prefs.getCharPref("currentCategory");
     if (!category) {
         category = "container-title";
@@ -42,20 +39,19 @@ var Abbrevs_Filter_Dialog = new function () {
     function init() {
 
         setTitle(listname, listTitle);
+
         populateCategoryMenu();
         setupCurrentCategoryList(category);
 
         buildResourceList();
         setImportSourceSelect();
 
-        
-
         /*
          * Jurisdiction suppression UI initialization
          */
 
-        for (var comment in _suppress) {
-            setJurisdictionNode(comment, _suppress[comment]);
+        for (var jurisdictionCode in io.style.opt.suppressedJurisdictions) {
+            setJurisdictionNode(jurisdictionCode, io.style.opt.suppressedJurisdictions[jurisdictionCode]);
         }
     }
 

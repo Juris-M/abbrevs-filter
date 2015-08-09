@@ -1,5 +1,4 @@
 AbbrevsFilter = function () {
-    this._suppress = {};
     this.resource_cache = {};
 };
 

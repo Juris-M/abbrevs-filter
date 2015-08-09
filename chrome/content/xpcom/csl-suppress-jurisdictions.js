@@ -1,10 +1,9 @@
 AbbrevsFilter.prototype.attachGetSuppressJurisdictions = function() {
 
-    var Zotero = this.Zotero;
-    var CSL = Zotero.CiteProc.CSL;
-    var _suppress = this._suppress;
-    
-    CSL.suppressJurisdictions = function (codeStr, humanStr) {
+    this.Zotero.CiteProc.CSL.getSuppressedJurisdictionName = function (codeStr, humanStr) {
+        if (!codeStr || !humanStr) {
+            throw "AFZ: missing value for codeStr or humanStr in getSuppressJurisdictionName()";
+        }
         var codeLst = codeStr.split(':');
         var humanLst = humanStr.split("|");
         var isValid;
@@ -19,8 +18,7 @@ AbbrevsFilter.prototype.attachGetSuppressJurisdictions = function() {
             }
             isValid = (humanLst.length == codeLst.length && humanLst[0] == codeLst[0]);
         }
-        if (!isValid) return humanStr;
-        if (_suppress[codeLst[0]]) {
+        if (isValid && this.opt.suppressedJurisdictions[codeLst[0]]) {
             if (codeLst.length == 1) {
                 humanStr = humanLst.slice(2).join('|');
             } else {
@@ -33,15 +31,12 @@ AbbrevsFilter.prototype.attachGetSuppressJurisdictions = function() {
 
 AbbrevsFilter.prototype.attachSetSuppressJurisdictions = function() {
 
+    var AbbrevsFilter = this;
     var Zotero = this.Zotero;
     var CSL = Zotero.CiteProc.CSL;
-    var AbbrevsFilter = this;
-    var _suppress = this._suppress;
+    var listname = this.citeproc.opt.styleID;
     
-    CSL.setSuppressJurisdictions = function(styleID) {
-        for (var key in _suppress) {
-            delete _suppress[key];
-        }
+    CSL.setSuppressedJurisdictions = function(styleID, suppressedJurisdictions) {
         var sql = "SELECT jurisdiction FROM suppressme "
             + "JOIN jurisdiction USING(jurisdictionID) "
             + "JOIN list USING(listID) "
@@ -58,7 +53,7 @@ AbbrevsFilter.prototype.attachSetSuppressJurisdictions = function() {
         }
         for (var i=0,ilen=results.length;i<ilen;i+=1) {
             var result = results[i];
-            _suppress[result.comment] = result.val;
+            suppressedJurisdictions[result.comment] = result.val;
         }
     }
 }
