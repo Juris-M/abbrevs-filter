@@ -98,6 +98,7 @@ ObservePopups.prototype = {
         wnd.addEventListener("DOMContentLoaded", function (event) {
             var doc = event.target;
             if (doc.documentElement.getAttribute('id') !== 'csl-edit') return;
+            if (doc.getElementById('abbrevs-button')) return;
 
             var Zotero = Cc["@zotero.org/Zotero;1"].getService(Ci.nsISupports).wrappedJSObject;
 	        var AbbrevsFilter = Components.classes['@juris-m.github.io/abbrevs-filter;1'].getService(Components.interfaces.nsISupports).wrappedJSObject;
