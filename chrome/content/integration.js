@@ -1,13 +1,14 @@
-var stringBundle = Components.classes["@mozilla.org/intl/stringbundle;1"]
-    .getService(Components.interfaces.nsIStringBundleService)
-    .createBundle("chrome://abbrevs-filter/locale/overlay.properties")
-
 window.addEventListener("load", function () {
+
+    var stringBundle = Cc["@mozilla.org/intl/stringbundle;1"]
+        .getService(Components.interfaces.nsIStringBundleService)
+        .createBundle("chrome://abbrevs-filter/locale/overlay.properties")
 
 	var AbbrevsFilter = Components.classes['@juris-m.github.io/abbrevs-filter;1'].getService(Components.interfaces.nsISupports).wrappedJSObject;
 	AbbrevsFilter.initWindow(window, document);
 
     var io = window.arguments[0].wrappedJSObject;
+
     io = {
         style:io.style,
         AFZ: AbbrevsFilter

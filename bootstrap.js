@@ -97,47 +97,113 @@ ObservePopups.prototype = {
         var wnd = subject.QueryInterface(Components.interfaces.nsIDOMWindow);
         wnd.addEventListener("DOMContentLoaded", function (event) {
             var doc = event.target;
-            if (doc.documentElement.getAttribute('id') !== 'csl-edit') return;
+
+            // Conditions: Open CSL Editor or one of the integration plugins
+
             if (doc.getElementById('abbrevs-button')) return;
 
-            var Zotero = Cc["@zotero.org/Zotero;1"].getService(Ci.nsISupports).wrappedJSObject;
-	        var AbbrevsFilter = Components.classes['@juris-m.github.io/abbrevs-filter;1'].getService(Components.interfaces.nsISupports).wrappedJSObject;
-	        AbbrevsFilter.initWindow(doc.defaultView, doc);
+            if (doc.documentElement.getAttribute('id') === 'csl-edit') {
 
-            var hasEngine = false;
+                var Zotero = Cc["@zotero.org/Zotero;1"].getService(Ci.nsISupports).wrappedJSObject;
+	            var AbbrevsFilter = Components.classes['@juris-m.github.io/abbrevs-filter;1'].getService(Components.interfaces.nsISupports).wrappedJSObject;
+	            AbbrevsFilter.initWindow(doc.defaultView, doc);
 
-	        var refresh = doc.getElementById("preview-refresh-button");
-	        var cslmenu = doc.getElementById("zotero-csl-list");
-	        var csleditor = doc.getElementById("zotero-csl-editor");
+                var hasEngine = false;
 
-	        var button = doc.createElement("button");
-	        button.setAttribute("label", "Abbrevs.");
-	        button.setAttribute("id","abbrevs-button");
-            button.setAttribute('disabled','true');
-	        cslmenu.parentNode.insertBefore(button, null);
+	            var refresh = doc.getElementById("preview-refresh-button");
+	            var cslmenu = doc.getElementById("zotero-csl-list");
+	            var csleditor = doc.getElementById("zotero-csl-editor");
 
-	        function attachStyleEngine () {
-                if (hasEngine) return;
-                var button = doc.getElementById('abbrevs-button');
-                var items = Zotero.getActiveZoteroPane().getSelectedItems();
-                if (items.length > 0) {
-                    button.removeAttribute('disabled');
-	                button.addEventListener("command", function() {
-		                var io = {
-                            style:csleditor.styleEngine,
-                            AFZ: AbbrevsFilter
-                        };
-                        io.wrappedJSObject = io;
-                        wnd.openDialog('chrome://abbrevs-filter/content/dialog.xul', 'AbbrevsFilterDialog', 'chrome,centerscreen,alwaysRaised,modal',io);
-                    }, false);
-                    hasEngine = true;
+	            var button = doc.createElement("button");
+	            button.setAttribute("label", "Abbrevs.");
+	            button.setAttribute("id","abbrevs-button");
+                button.setAttribute('disabled','true');
+	            cslmenu.parentNode.insertBefore(button, null);
+
+	            function attachStyleEngine () {
+                    if (hasEngine) return;
+                    var button = doc.getElementById('abbrevs-button');
+                    var items = Zotero.getActiveZoteroPane().getSelectedItems();
+                    if (items.length > 0) {
+                        button.removeAttribute('disabled');
+	                    button.addEventListener("command", function() {
+		                    var io = {
+                                style:csleditor.styleEngine,
+                                AFZ: AbbrevsFilter
+                            };
+                            io.wrappedJSObject = io;
+                            wnd.openDialog('chrome://abbrevs-filter/content/dialog.xul', 'AbbrevsFilterDialog', 'chrome,centerscreen,alwaysRaised,modal',io);
+                        }, false);
+                        hasEngine = true;
+                    }
+	            }
+                attachStyleEngine();
+
+	            cslmenu.addEventListener("command", attachStyleEngine, false);
+	            refresh.addEventListener("command", attachStyleEngine, false);
+                button.addEventListener("command", attachStyleEngine, false);
+
+            } else if (doc.getElementById("zotero-add-citation-dialog") || doc.getElementById("quick-format-search")) {
+
+                var stringBundle = Cc["@mozilla.org/intl/stringbundle;1"]
+                    .getService(Components.interfaces.nsIStringBundleService)
+                    .createBundle("chrome://abbrevs-filter/locale/overlay.properties")
+
+	            var AbbrevsFilter = Components.classes['@juris-m.github.io/abbrevs-filter;1'].getService(Components.interfaces.nsISupports).wrappedJSObject;
+	            AbbrevsFilter.initWindow(doc.defaultView, doc);
+
+                var io = doc.defaultView.arguments[0].wrappedJSObject;
+
+                io = {
+                    style:io.style,
+                    AFZ: AbbrevsFilter
                 }
-	        }
-            attachStyleEngine();
+                io.wrappedJSObject = io;
 
-	        cslmenu.addEventListener("command", attachStyleEngine, false);
-	        refresh.addEventListener("command", attachStyleEngine, false);
-            button.addEventListener("command", attachStyleEngine, false);
+                function processorIsLoaded() { 
+                    if (io.wrappedJSObject.style.registry.citationreg.citationByIndex.length) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+
+                function makeButtonBox() {
+	                var bx = doc.createElement("hbox");
+	                var button = doc.createElement("button");
+	                button.setAttribute("type", "button");
+	                button.setAttribute("label", stringBundle.GetStringFromName('dialogLabel'));
+	                button.setAttribute("id", "abbrevs-filter-dialog-button");
+                    if (!processorIsLoaded()) {
+                        button.setAttribute("disabled", "true");
+                    }
+	                bx.appendChild(button);
+                    return bx;
+                }
+
+                function attachButton(bx) {
+                    var dialog = doc.getElementById("zotero-add-citation-dialog");
+                    if (dialog) {
+	                    var vbox = doc.getElementById("zotero-select-items-container");
+	                    dialog.insertBefore(bx, vbox);
+                    } else {
+                        bx.firstChild.setAttribute("style","padding: 0 6px 0 6px;margin: -1px 2px 0 2px;display: inline-block;line-height: normal;");
+                        searchBox = doc.getElementById("quick-format-search");
+                        searchBox.insertBefore(bx, null);
+                    }
+                    return bx.firstChild;
+                }
+
+                var buttonbox = makeButtonBox();
+                var button = attachButton(buttonbox);
+
+                button.addEventListener("command", function() {
+                    doc.defaultView.openDialog('chrome://abbrevs-filter/content/dialog.xul', 
+                                      'AbbrevsFilterDialog', 
+                                      'chrome,centerscreen,alwaysRaised,modal',
+                                      io);
+                });
+            }
 
         }, false);
     },
