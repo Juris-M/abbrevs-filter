@@ -64,9 +64,6 @@ function setUCharPref(prefName,text,branch)  // Unicode setCharPref
     branch.setComplexValue(prefName, Components.interfaces.nsISupportsString, string);
 }
 
-Services.scriptloader.loadSubScript("chrome://abbrevs-filter/content/defaultprefs.js",
-                                    {pref:setDefaultPref} );
-
 var ObserveStartup = function () {};
 
 ObserveStartup.prototype = {
@@ -164,6 +161,13 @@ var AbbrevsFilterFactory;
 var AbbrevsService;
 
 function startup (data, reason) {
+
+    // Set up preferences
+    Cc["@mozilla.org/moz/jssubscript-loader;1"]
+	    .getService(Ci.mozIJSSubScriptLoader)
+	    .loadSubScript("chrome://abbrevs-filter/content/defaultprefs.js",
+                       {pref:setDefaultPref} );
+
     // Empty context for build
     var buildContext = {};
 
