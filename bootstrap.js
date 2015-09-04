@@ -1,5 +1,6 @@
 const {classes: Cc, interfaces: Ci, utils: Cu, results: Cr} = Components;
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+Cu.import("resource://gre/modules/Services.jsm");
 
 /*
  * Function to pick up Zotero and tinker with it.
@@ -163,10 +164,8 @@ var AbbrevsService;
 function startup (data, reason) {
 
     // Set up preferences
-    Cc["@mozilla.org/moz/jssubscript-loader;1"]
-	    .getService(Ci.mozIJSSubScriptLoader)
-	    .loadSubScript("chrome://abbrevs-filter/content/defaultprefs.js",
-                       {pref:setDefaultPref} );
+    Services.scriptloader.loadSubScript("chrome://abbrevs-filter/content/defaultprefs.js",
+                                        {pref:setDefaultPref} );
 
     // Empty context for build
     var buildContext = {};
@@ -184,9 +183,7 @@ function startup (data, reason) {
 	    "export"
     ];
     for (var i=0, ilen=xpcomFiles.length; i < ilen; i += 1) {
-	    Cc["@mozilla.org/moz/jssubscript-loader;1"]
-		    .getService(Ci.mozIJSSubScriptLoader)
-		    .loadSubScript("chrome://abbrevs-filter/content/xpcom/" + xpcomFiles[i] + ".js", buildContext);
+	    Services.scriptloader.loadSubScript("chrome://abbrevs-filter/content/xpcom/" + xpcomFiles[i] + ".js", buildContext);
     }
 
     AbbrevsService = function () {
