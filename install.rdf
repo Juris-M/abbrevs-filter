@@ -8,6 +8,7 @@
     <em:creator>Frank Bennett</em:creator>
     <em:description>Abbreviation list maintenance and editing for Juris-M and Zotero</em:description>
     <em:updateURL>https://juris-m.github.io/abbrevs-filter/update.rdf</em:updateURL>
+    <em:bootstrap>true</em:bootstrap>
     <em:unpack>true</em:unpack>
     <em:updateKey>MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDJqWvOZqiHGp8hLJI92KIp6t1pKP2Q2t+5glUh7JSl+2pdt8y9ANHT1Bx3YrKDi1xwXJ7FNi4mss5XFqEmuJf2TDn02+V6D0hFsNEsSlkCcsznwnCYzeU8GKAhlgjeXz7YPQswLLSk61af/hIhdYUEyYQbxmIAOHDHgMeRcuYJ+QIDAQAB</em:updateKey>
     <em:targetApplication>
