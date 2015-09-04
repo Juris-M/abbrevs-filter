@@ -1,4 +1,4 @@
-AbbrevsFilter = function () {
+var AbbrevsFilter = function () {
     this.resource_cache = {};
 };
 
@@ -28,10 +28,11 @@ AbbrevsFilter.prototype.setDBVersion = function(facility, version) {
     }
 }
 
+// XXX A bad thing is that this wants to be runnable in an event as well -- and so context problems.
 AbbrevsFilter.prototype.getDBVersion = function(facility) {
-	if (AbbrevsFilter.db.tableExists("version")) {
+	if (this.db.tableExists("version")) {
         var sql = "SELECT version FROM version WHERE schema=?";
-        var dbVersion = AbbrevsFilter.db.valueQuery(sql,[facility]);
+        var dbVersion = this.db.valueQuery(sql,[facility]);
         if (dbVersion) {
             dbVersion = parseInt(dbVersion, 10);
         } else {
