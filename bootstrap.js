@@ -17,6 +17,56 @@ function ifZotero(succeed, fail) {
     }
 }
 
+// Preferences
+// From https://developer.mozilla.org/en-US/Add-ons/How_to_convert_an_overlay_extension_to_restartless
+function getGenericPref(branch,prefName)
+{
+    switch (branch.getPrefType(prefName))
+    {
+        default:
+        case 0:   return undefined;                      // PREF_INVALID
+        case 32:  return getUCharPref(prefName,branch);  // PREF_STRING
+        case 64:  return branch.getIntPref(prefName);    // PREF_INT
+        case 128: return branch.getBoolPref(prefName);   // PREF_BOOL
+    }
+}
+function setGenericPref(branch,prefName,prefValue)
+{
+    switch (typeof prefValue)
+    {
+      case "string":
+          setUCharPref(prefName,prefValue,branch);
+          return;
+      case "number":
+          branch.setIntPref(prefName,prefValue);
+          return;
+      case "boolean":
+          branch.setBoolPref(prefName,prefValue);
+          return;
+    }
+}
+function setDefaultPref(prefName,prefValue)
+{
+    var defaultBranch = Services.prefs.getDefaultBranch(null);
+    setGenericPref(defaultBranch,prefName,prefValue);
+}
+function getUCharPref(prefName,branch)  // Unicode getCharPref
+{
+    branch = branch ? branch : Services.prefs;
+    return branch.getComplexValue(prefName, Components.interfaces.nsISupportsString).data;
+}
+function setUCharPref(prefName,text,branch)  // Unicode setCharPref
+{
+    var string = Components.classes["@mozilla.org/supports-string;1"]
+                           .createInstance(Components.interfaces.nsISupportsString);
+    string.data = text;
+    branch = branch ? branch : Services.prefs;
+    branch.setComplexValue(prefName, Components.interfaces.nsISupportsString, string);
+}
+
+Services.scriptloader.loadSubScript("chrome://abbrevs-filter/content/defaultprefs.js",
+                                    {pref:setDefaultPref} );
+
 var ObserveStartup = function () {};
 
 ObserveStartup.prototype = {
@@ -50,8 +100,8 @@ ObservePopups.prototype = {
         wnd.addEventListener("DOMContentLoaded", function (event) {
             var doc = event.target;
             if (doc.documentElement.getAttribute('id') !== 'csl-edit') return;
-            var Zotero = Cc["@zotero.org/Zotero;1"].getService(Ci.nsISupports).wrappedJSObject;
 
+            var Zotero = Cc["@zotero.org/Zotero;1"].getService(Ci.nsISupports).wrappedJSObject;
 	        var AbbrevsFilter = Components.classes['@juris-m.github.io/abbrevs-filter;1'].getService(Components.interfaces.nsISupports).wrappedJSObject;
 	        AbbrevsFilter.initWindow(doc.defaultView, doc);
 
@@ -135,7 +185,7 @@ function startup (data, reason) {
 		    .loadSubScript("chrome://abbrevs-filter/content/xpcom/" + xpcomFiles[i] + ".js", buildContext);
     }
 
-    var AbbrevsService = function () {
+    AbbrevsService = function () {
 	    this.wrappedJSObject = new buildContext.AbbrevsFilter();
     };
 
