@@ -8,7 +8,7 @@ AbbrevsFilter.prototype.updateDB = function () {
 	    this.db.query(sql);
         this.setDBVersion('abbreviations', version);
         if (!this.installInProgress) {
-            AbbrevsFilter.launchImportProgressMeter();
+            this.launchImportProgressMeter();
         }
     } else {
         var dbVersion = this.getDBVersion('abbreviations');
