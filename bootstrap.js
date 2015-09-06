@@ -65,16 +65,16 @@ function setUCharPref(prefName,text,branch)  // Unicode setCharPref
     branch.setComplexValue(prefName, Components.interfaces.nsISupportsString, string);
 }
 
+var componentInitialized = false;
 var ObserveStartup = function () {};
-
 ObserveStartup.prototype = {
     observe: function(subject, topic, data) {
-        var Zotero = Cc["@zotero.org/Zotero;1"].getService(Ci.nsISupports).wrappedJSObject;
-	    var AbbrevsFilter = Components.classes['@juris-m.github.io/abbrevs-filter;1'].getService(Ci.nsISupports).wrappedJSObject;
-        AbbrevsFilter.initComponent(Zotero);
-        var observerService = Components.classes["@mozilla.org/observer-service;1"]
-            .getService(Components.interfaces.nsIObserverService);
-        observerService.removeObserver(this, "content-document-global-created");
+        if (!componentInitialized) {
+            var Zotero = Cc["@zotero.org/Zotero;1"].getService(Ci.nsISupports).wrappedJSObject;
+	        var AbbrevsFilter = Components.classes['@juris-m.github.io/abbrevs-filter;1'].getService(Ci.nsISupports).wrappedJSObject;
+            AbbrevsFilter.initComponent(Zotero);
+            componentInitialized = true;
+        }
     },
     register: function() {
         var observerService = Components.classes["@mozilla.org/observer-service;1"]
