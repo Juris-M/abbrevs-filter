@@ -6,7 +6,7 @@ set -e
 
 # Constants
 PRODUCT="Juris-M Abbreviation Filter: abbreviation list editing and maintenance"
-IS_BETA=0
+IS_BETA="false"
 FORK="abbrevs-filter"
 BRANCH="master"
 CLIENT="abbrevs-filter"

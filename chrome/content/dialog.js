@@ -23,6 +23,8 @@ var Abbrevs_Filter_Dialog = new function () {
     var listTitle = style.opt.styleName ? style.opt.styleName : style.opt.styleID;
 
     var AFZ = io.AFZ;
+    // Used by import, export
+    AFZ.listname = listname;
     var Zotero = AFZ.Zotero;
     var CSL = Zotero.CiteProc.CSL;
     var addOrDeleteEntry = AFZ.addOrDeleteEntry;

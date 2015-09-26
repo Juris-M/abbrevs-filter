@@ -28,6 +28,8 @@ var Abbrevs_Filter_Import = new function () {
             // So get the directory list.
             var directoryMap = AFZ.getResourceObject('abbrevs/DIRECTORY_LISTING');
 
+            /*
+
             // Check the versions in the list against those recorded in the database, if any.
             var somethingToUpdate = false;
             listsForUpdate = {};
@@ -44,7 +46,11 @@ var Abbrevs_Filter_Import = new function () {
             // Then get the install map.
             var installMap = AFZ.getResourceObject("map");
 
+            */
+
             var spec = {};
+
+            /*
             for (var styleID in installMap) {
                 // Walk through the install map, building a spec object containing pointers
                 // only to lists that require updating.
@@ -61,6 +67,9 @@ var Abbrevs_Filter_Import = new function () {
                     somethingToUpdate = true;
                 }
             }
+
+            */
+
             if (Object.keys(spec).length) {
                 return spec;
             } else {
