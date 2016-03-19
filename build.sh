@@ -11,6 +11,7 @@ FORK="abbrevs-filter"
 BRANCH="master"
 CLIENT="abbrevs-filter"
 VERSION_ROOT="1.1."
+SIGNED_STUB="juris_m_abbreviation_filter-"
 
 function build-the-plugin () {
     set-install-version
