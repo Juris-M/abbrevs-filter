@@ -14,19 +14,22 @@ VERSION_ROOT="1.1."
 
 function build-the-plugin () {
     set-install-version
-    find . -name '.hg' -prune -o \
-        -name '.hgignore' -prune -o \
-        -name '.gitmodules' -prune -o \
+    find . -name '.gitmodules' -prune -o \
+        -name '.gitignore' -prune -o \
         -name '*~' -prune -o \
         -name '.git' -prune -o \
         -name 'attic' -prune -o \
-        -name '.hgsub' -prune -o \
-        -name '.hgsubstate' -prune -o \
+        -name 'docs' -prune -o \
+        -name 'tools' -prune -o \
         -name '*.bak' -prune -o \
         -name '*.tmpl' -prune -o \
         -name 'version' -prune -o \
         -name 'releases' -prune -o \
-        -name 'sh-lib' -prune -o \
+        -name 'jm-sh' -prune -o \
+        -name 'index.js' -prune -o \
+        -name 'package.json' -prune -o \
+        -name 'test' -prune -o \
+        -name 'update-TEMPLATE.rdf' -prune -o \
         -name 'build.sh' -prune -o \
         -print | xargs zip "${XPI_FILE}" >> "${LOG_FILE}"
     }
