@@ -2,3 +2,6 @@
 	path = resource/abbrevs
 	url = git@github.com:Juris-M/jurism-abbreviations.git
 
+[submodule "jm-sh"]
+	path = jm-sh
+	url = git@github.com:Juris-M/jm-sh.git
