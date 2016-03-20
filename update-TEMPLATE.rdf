@@ -5,13 +5,13 @@
       <rdf:Seq>
         <rdf:li>
           <rdf:Description>
-            <em:version>1.1.26</em:version>
+            <em:version>1.1.27</em:version>
             <em:targetApplication>
               <rdf:Description>
                 <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
                 <em:minVersion>39.0</em:minVersion>
                 <em:maxVersion>45.*</em:maxVersion>
-                <em:updateLink>https://github.com/Juris-M/abbrevs-filter/releases/download/v1.1.26/abbrevs-filter-v1.1.26-fx.xpi</em:updateLink>
+                <em:updateLink>https://github.com/Juris-M/abbrevs-filter/releases/download/v1.1.27/abbrevs-filter-v1.1.27-fx.xpi</em:updateLink>
               </rdf:Description>
             </em:targetApplication>
           </rdf:Description>
