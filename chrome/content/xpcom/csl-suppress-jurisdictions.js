@@ -2,7 +2,7 @@ AbbrevsFilter.prototype.attachGetSuppressJurisdictions = function() {
 
     this.Zotero.CiteProc.CSL.getSuppressedJurisdictionName = function (codeStr, humanStr) {
         if (!codeStr || !humanStr) {
-            throw "AFZ: missing value for codeStr or humanStr in getSuppressJurisdictionName()";
+            throw "AFZ: missing value for codeStr or humanStr in getSuppressedJurisdictionName()";
         }
         var codeLst = codeStr.split(':');
         var humanLst = humanStr.split("|");
