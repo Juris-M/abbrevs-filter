@@ -43,7 +43,7 @@
         <textbox id="suppression-autocomplete" 
                  placeholder="Add a jurisdiction"
                  type="autocomplete" 
-                 autocompletesearch="zotero" 
+                 autocompletesearch="jurism" 
                  autocompletesearchparam='{"fieldName":"jurisdictions"}'
                  ontextentered="Abbrevs_Filter_Dialog.handleJurisdictionAutoCompleteSelect(this);"/>
         <hbox flex="1"/>
