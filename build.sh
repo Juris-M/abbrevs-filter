@@ -8,7 +8,7 @@ set -e
 PRODUCT="Juris-M Abbreviation Filter: abbreviation list editing and maintenance"
 IS_BETA="false"
 FORK="abbrevs-filter"
-BRANCH="master"
+BRANCH="af-5.0"
 CLIENT="abbrevs-filter"
 VERSION_ROOT="1.1."
 SIGNED_STUB="juris_m_abbreviation_filter-"
