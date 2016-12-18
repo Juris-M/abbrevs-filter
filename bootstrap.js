@@ -240,14 +240,13 @@ var startup = Zotero.Promise.coroutine(function* (data, reason) {
     // Build and instantiate the component
     var xpcomFiles = [
 		"component",
-		"util",
+		"utils",
 		"initializers",
+		"attachers",
         "adddel",
 
-        "csl-get-abbreviation",
-        "csl-suppress-jurisdictions",
-	    "import",
-	    "export"
+		"import",
+		"export"
     ];
     for (var i=0, ilen=xpcomFiles.length; i < ilen; i += 1) {
 	    Services.scriptloader.loadSubScript("chrome://abbrevs-filter/content/xpcom/" + xpcomFiles[i] + ".js", buildContext);
