@@ -241,10 +241,10 @@ var startup = Zotero.Promise.coroutine(function* (data, reason) {
     var xpcomFiles = [
 		"component",
 		"utils",
+        "editdb",
 		"initializers",
 		"attachers",
-        "adddel",
-
+		
 		"import",
 		"export"
     ];
