@@ -8,7 +8,7 @@ AbbrevsFilter.prototype.chooseImportList = function (window, document) {
 	var nsIFilePicker = Components.interfaces.nsIFilePicker;
 	var fp = Components.classes["@mozilla.org/filepicker;1"]
 		.createInstance(nsIFilePicker);
-	fp.init(window, "Select the json file containing list data for import", nsIFilePicker.modeOpen);
+	fp.init(window, "Select a JSON file containing list data for import", nsIFilePicker.modeOpen);
 	fp.appendFilter("JSON data", "*.json");
 	
 	var rv = fp.show();

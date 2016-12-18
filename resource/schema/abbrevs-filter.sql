@@ -1,4 +1,4 @@
--- 14
+-- 15
 
 DROP TABLE IF EXISTS suppressme;
 CREATE TABLE suppressme (
@@ -15,7 +15,8 @@ CREATE TABLE abbreviations (
    jurisdictionID INTEGER,
    categoryID INTEGER,
    rawID INTEGER,
-   abbrID INTEGER
+   abbrID INTEGER,
+   UNIQUE (listID, jurisdictionID, categoryID, rawID)
 );
 CREATE INDEX abbreviations_listID ON abbreviations(listID);
 CREATE INDEX abbreviations_jurisdictionID ON abbreviations(jurisdictionID);

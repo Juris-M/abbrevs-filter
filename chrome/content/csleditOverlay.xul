@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet href="chrome://abbrevs-filter/skin/addCitationDialog.css" type="text/css"?>
-<!DOCTYPE overlay SYSTEM "chrome://abbrevs-filter/locale/addCitationDialog.dtd">
-<overlay id="abbrevs-filter-addCitationDialog" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-
-  <script src="csleditOverlay.js"/>
-
-</overlay>

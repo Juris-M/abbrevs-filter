@@ -1,7 +1,18 @@
+// Getting abbreviations happens in two steps.
+//
+// A database call, to be issued in async iterator context,
+//   pulls all key/value pairs that might be needed for a given
+//   citation into a memory cache before the citation processor
+//   is called.
+//
+// A synchronus getAbbreviation() function looks up specific
+//   key/value pairs in the cache.
+
+
 AbbrevsFilter.prototype.attachGetAbbreviation = function () {
     var Zotero = this.Zotero;
     var db = this.db;
-    var addOrDeleteEntry = this.addOrDeleteEntry;
+    var editEntry = this.editEntry;
     var CSL = Zotero.CiteProc.CSL;
     this.citeproc = CSL;
     var AbbrevsFilter = this;
@@ -93,7 +104,7 @@ AbbrevsFilter.prototype.attachGetAbbreviation = function () {
                 if (abbr) {
                     obj[myjurisdiction][category][jsKey] = abbr;
                     //if (myjurisdiction !== jurisdiction) {
-                    //    addOrDeleteEntry (listname, jurisdiction, category, key, abbr);
+                    //    editEntry (listname, jurisdiction, category, key, abbr);
                     //}
                     haveHit = true;
                     break;
@@ -152,7 +163,7 @@ AbbrevsFilter.prototype.attachGetAbbreviation = function () {
                         // We need to force an add to the DB as well.
                         if (newlst.join(" ") !== jsKey) {
                             obj[jurisdiction][category][jsKey] = newlst.join(" ");
-                            addOrDeleteEntry (listname, jurisdiction, category, key, newlst.join(" "));
+                            editEntry (listname, jurisdiction, category, key, newlst.join(" "));
                         } else {
                             obj[jurisdiction][category][jsKey] = "";
                         }

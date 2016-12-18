@@ -228,7 +228,7 @@ var observePopups = new ObservePopups();
 var AbbrevsFilterFactory;
 var AbbrevsService;
 
-function startup (data, reason) {
+var startup = Zotero.Promise.coroutine(function* (data, reason) {
 
     // Set up preferences
     Services.scriptloader.loadSubScript("chrome://abbrevs-filter/content/defaultprefs.js",
@@ -239,11 +239,11 @@ function startup (data, reason) {
 
     // Build and instantiate the component
     var xpcomFiles = [
-	    "load",
-        "update",
-	    "window",
-        "style",
+		"component",
+		"util",
+		"initializers",
         "adddel",
+
         "csl-get-abbreviation",
         "csl-suppress-jurisdictions",
 	    "import",
@@ -283,7 +283,7 @@ function startup (data, reason) {
                               AbbrevsFilterFactory);
     observeStartup.register();
     observePopups.register();
-}
+});
 
 function shutdown (data, reason) {
     observePopups.unregister();
