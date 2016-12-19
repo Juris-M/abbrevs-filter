@@ -310,7 +310,7 @@ var Abbrevs_Filter_Import = new function () {
         var info = infos[pos];
         setTimeout(function() {
 	        var abbr = json_obj[info.jurisdiction][info.category][info.raw];
-	        AFZ.addOrDeleteEntry(info.listname, info.jurisdiction, info.category, info.raw, abbr);
+	        AFZ.saveEntry(info.listname, info.jurisdiction, info.category, info.raw, abbr);
             runningTotal += 1;
             replaceAbbrevsAction(pos+1,limit,infos,json_obj);
             updateProgressMeter();
@@ -358,7 +358,7 @@ var Abbrevs_Filter_Import = new function () {
         var info = infos[pos];
         setTimeout(function() {
 	        var abbr = json_obj[info.jurisdiction][info.category][info.raw];
-	        AFZ.addOrDeleteEntry(info.listname, info.jurisdiction, info.category, info.raw, abbr);
+	        AFZ.saveEntry(info.listname, info.jurisdiction, info.category, info.raw, abbr);
             runningTotal += 1;
             overrideAbbrevsAction(pos+1,limit,infos,json_obj);
             updateProgressMeter();
@@ -409,7 +409,7 @@ var Abbrevs_Filter_Import = new function () {
 	        var hasAlready = AFZ.db.valueQuery(subsql, subparams);
 	        if (!hasAlready) {
 		        var abbr = json_obj[info.jurisdiction][info.category][info.raw];
-                AFZ.addOrDeleteEntry(info.listname, info.jurisdiction, info.category, info.raw, abbr);
+                AFZ.saveEntry(info.listname, info.jurisdiction, info.category, info.raw, abbr);
             }
             runningTotal += 1;
             fillAbbrevsAction(pos+1,limit,infos,json_obj);

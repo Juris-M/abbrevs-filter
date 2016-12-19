@@ -2,7 +2,6 @@ AbbrevsFilter.prototype.initComponent = Zotero.Promise.coroutine(function* (Zote
     this.Zotero = Zotero;
     this.db = new this.Zotero.DBConnection("abbrevs-filter");
 	yield this.initDB();
-    this.addOrDeleteEntry = this.getAddOrDeleteEntry();
     this.attachPreloadAbbreviations();
     this.attachGetAbbreviation();
     this.attachSetSuppressJurisdictions();

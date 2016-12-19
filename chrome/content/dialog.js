@@ -27,7 +27,7 @@ var Abbrevs_Filter_Dialog = new function () {
     AFZ.listname = listname;
     var Zotero = AFZ.Zotero;
     var CSL = Zotero.CiteProc.CSL;
-    var addOrDeleteEntry = AFZ.addOrDeleteEntry;
+    var saveEntry = AFZ.saveEntry;
 
     var category = prefs.getCharPref("currentCategory");
     if (!category) {
@@ -354,7 +354,7 @@ var Abbrevs_Filter_Dialog = new function () {
              data.rawVal = data.rawNode.getAttribute("system_id");
         }
 
-        AFZ.addOrDeleteEntry(data.listnameVal, data.jurisdictionVal, data.categoryVal, data.rawVal, data.abbrevVal);
+        AFZ.saveEntry(data.listnameVal, data.jurisdictionVal, data.categoryVal, data.rawVal, data.abbrevVal);
 
         // Reverse remap hereinafter key here
         if ("hereinafter" === data.categoryVal) {
