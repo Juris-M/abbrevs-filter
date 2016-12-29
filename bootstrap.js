@@ -246,7 +246,6 @@ var startup = Zotero.Promise.coroutine(function* (data, reason) {
 		"getabbrev",
 		"initializers",
 		"attachers",
-		
 		"import",
 		"export"
     ];

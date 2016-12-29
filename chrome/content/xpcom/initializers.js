@@ -1,5 +1,7 @@
 AbbrevsFilter.prototype.initComponent = Zotero.Promise.coroutine(function* (Zotero) {
     this.Zotero = Zotero;
+	this.CSL = Zotero.CiteProc.CSL;
+	this.sys = new Zotero.Cite.System;
     this.db = new this.Zotero.DBConnection("abbrevs-filter");
 	yield this.initDB();
     this.attachPreloadAbbreviations();

@@ -410,6 +410,20 @@ var Abbrevs_Filter_Dialog = new function () {
         }
     }
     
+	function importChooseSourceFile () {
+		var nsIFilePicker = Components.interfaces.nsIFilePicker;
+		var fp = Components.classes["@mozilla.org/filepicker;1"]
+			.createInstance(nsIFilePicker);
+		fp.init(window, "Select a JSON file containing list data for import", nsIFilePicker.modeOpen);
+		fp.appendFilter("JSON data", "*.json");
+		var rv = fp.show();
+		if (rv == nsIFilePicker.returnOK || rv == nsIFilePicker.returnReplace) {
+			this.fileForImport = fp.file;
+			var elem = document.getElementById("file-for-import");
+			elem.setAttribute('value',fp.file.path);
+		}
+	}
+
     /*
      * Jurisdiction suppression UI utility functions
      */
@@ -526,4 +540,5 @@ var Abbrevs_Filter_Dialog = new function () {
 		}
 		return false;
     }
+
 }

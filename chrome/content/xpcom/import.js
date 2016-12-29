@@ -1,30 +1,7 @@
-// Import an abbreviation list
-AbbrevsFilter.prototype.chooseImportList = function (window, document) {
-    var sql, sqlinsert;
-    var Zotero = this.Zotero;
-
-	var listname = this.listname;
-    var listID = this.getListID(listname);
-	var nsIFilePicker = Components.interfaces.nsIFilePicker;
-	var fp = Components.classes["@mozilla.org/filepicker;1"]
-		.createInstance(nsIFilePicker);
-	fp.init(window, "Select a JSON file containing list data for import", nsIFilePicker.modeOpen);
-	fp.appendFilter("JSON data", "*.json");
-	
-	var rv = fp.show();
-
-	if (rv == nsIFilePicker.returnOK || rv == nsIFilePicker.returnReplace) {
-        this.fileForImport = fp.file;
-        var fileDisplayNode = document.getElementById("file-for-import");
-        fileDisplayNode.setAttribute('value',fp.file.path);
-    }
-}
-
 AbbrevsFilter.prototype.importList = function (window, document) {
     var sql, sqlinsert;
     var Zotero = this.Zotero;
 	var listname = this.listname;
-    var listID = this.getListID(listname);
     
 	var mode = document.getElementById("abbrevs-filter-import-options").selectedIndex;
 
@@ -49,7 +26,7 @@ AbbrevsFilter.prototype.importList = function (window, document) {
 		cstream.init(fstream, "UTF-8", 0, 0);
 		var str = {};
 		var read = 0;
-		do { 
+		do {
 			read = cstream.readString(0xffffffff, str);
 			json_str += str.value;
 		} while (read != 0);
@@ -77,7 +54,7 @@ AbbrevsFilter.prototype.importList = function (window, document) {
             var launchImportProgressMeter = this.launchImportProgressMeter;
             launchImportProgressMeter(spec);
         } catch (e) {
-            Zotero.debug("AFZ: [ERROR] MLZ: failure while attempting to import abbreviation list: "+e);
+            Zotero.debug("AFZ: [ERROR] MLZ: failure attempting to import abbreviation list: "+e);
         }
 	}
     window.close();
@@ -85,7 +62,6 @@ AbbrevsFilter.prototype.importList = function (window, document) {
     function normalizeObjects(obj) {
         // Set a list in which to collect objects
         // Traverse until we find an object with conforming keys and string pairs.
-        // ... this is going to be hard ...
         var collector = [];
         getValidObjects(collector,null,obj);
         return collector;
@@ -166,44 +142,4 @@ AbbrevsFilter.prototype.importList = function (window, document) {
             }
         }
     }
-}
-
-
-AbbrevsFilter.prototype.launchImportProgressMeter = function (spec) {
-
-    this.installInProgress = true;
-
-	var allOptions = 'chrome,centerscreen';
-	//if(Zotero.isLinux) allOptions += ',dialog=no';
-	allOptions += ',alwaysRaised';
-
-    
-
-    var io = new function(){
-        this.wrappedJSObject = {
-            spec:spec
-        };
-    };
-
-	var window = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-		.getService(Components.interfaces.nsIWindowWatcher)
-		.openWindow(
-            null,
-            'chrome://abbrevs-filter/content/importProgressMeter.xul',
-            '',
-            allOptions,
-            io
-        );
-}
-
-
-AbbrevsFilter.prototype.getListID = function (listname) {
-	var sql = "SELECT listID FROM list WHERE list=?";
-	var listID = this.db.valueQuery(sql, [listname]);
-	if (!listID) {
-		var sqlInsert = "INSERT INTO list VALUES (NULL, ?)";
-		this.db.query(sqlInsert, [listname]);
-		listID = this.db.valueQuery(sql, [listname]);
-	}
-    return listID;
 }
