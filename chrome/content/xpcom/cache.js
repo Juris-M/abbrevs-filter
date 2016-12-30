@@ -1,7 +1,7 @@
 AbbrevsFilter.prototype.setCacheFromCitation = Zotero.Promise.coroutine(function* (listname, citation) {
 	var jurisdiction, category, rawvals;
 
-	let rawFieldFunction: {
+	let rawFieldFunction = {
         "container-title": function (item, varname) {
             return item[varname] ? [item[varname]] : false;
         },

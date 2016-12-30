@@ -13,6 +13,10 @@ AbbrevsFilter.prototype.attachSetCacheEntry = function () {
 }
 
 
+AbbrevsFilter.prototype.attachPreloadAbbreviations = function () {
+	CSL.preloadAbbreviations = this.setCacheFromCitation.bind(this);
+}
+
 AbbrevsFilter.prototype.attachGetAbbreviation = function () {
 	CSL.getAbbreviation = this.getAbbreviation.bind(this);
 }

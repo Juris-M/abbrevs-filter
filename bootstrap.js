@@ -228,7 +228,7 @@ var observePopups = new ObservePopups();
 var AbbrevsFilterFactory;
 var AbbrevsService;
 
-var startup = Zotero.Promise.coroutine(function* (data, reason) {
+var startup = function (data, reason) {
 
     // Set up preferences
     Services.scriptloader.loadSubScript("chrome://abbrevs-filter/content/defaultprefs.js",
@@ -283,7 +283,7 @@ var startup = Zotero.Promise.coroutine(function* (data, reason) {
                               AbbrevsFilterFactory);
     observeStartup.register();
     observePopups.register();
-});
+};
 
 function shutdown (data, reason) {
     observePopups.unregister();

@@ -32,4 +32,4 @@ AbbrevsFilter.prototype.saveEntry = Zotero.Promise.coroutine(function* (listname
 			}
 		}
 	}
-}
+});
