@@ -1,18 +1,25 @@
 AbbrevsFilter.prototype.initComponent = Zotero.Promise.coroutine(function* (Zotero) {
-    this.Zotero = Zotero;
-	this.CSL = Zotero.CiteProc.CSL;
-	this.sys = new Zotero.Cite.System;
-    this.db = new this.Zotero.DBConnection("abbrevs-filter");
+	dump("[AFZ] initComponent\n");
+	try {
+		Zotero.Prefs.init();
+		yield Zotero.DataDirectory.init();
+		this.Zotero = Zotero;
+		this.CSL = Zotero.CiteProc.CSL;
+		this.sys = new Zotero.Cite.System;
+		this.db = new Zotero.DBConnection("abbrevs-filter");
+	} catch (e) {
+		dump("[AFZ] initComponent OOPS: " + e);
+	}
 	yield this.initDB();
     this.attachPreloadAbbreviations();
     this.attachGetAbbreviation();
     this.attachSetSuppressJurisdictions();
     this.attachGetSuppressJurisdictions();
+	this.attachSetCachedAbbrevList();
+	this.attachGetCachedAbbrevList();
 });
 
-AbbrevsFilter.prototype.initPage = function () {
-    this.resetCache();
-}
+AbbrevsFilter.prototype.initPage = function () {}
 
 AbbrevsFilter.prototype.initWindow = function (window, document) {
     if (!window.arguments) return;
@@ -46,35 +53,39 @@ AbbrevsFilter.prototype.initWindow = function (window, document) {
 AbbrevsFilter.prototype.initDB = Zotero.Promise.coroutine(function* () {
     var sql = Zotero.File.getContentsFromURL("resource://abbrevs-filter/schema/abbrevs-filter.sql");
     var version = parseInt(sql.match(/^-- ([0-9]+)/)[1]);
-    if (!this.db.tableExists("abbreviations")) {
+	var tableExists = yield this.db.tableExists("abbreviations");
+try {
+    if (!tableExists) {
         Zotero.debug("AFZ: [SETUP] no abbreviations table table found, performing scratch install)");
-        this.db.beginTransaction();
-	    yield this.db.query(sql);
-        yield this.setDBVersion('abbreviations', version);
-        this.db.commitTransaction();
+		yield this.db.executeTransaction(function* () {
+			yield this.db.executeSQLFile(sql);
+			yield this.setDBVersion('abbreviations', version);
+		}.bind(this));
 	} else {
-        var dbVersion = yield this.getDBVersion('abbreviations');
-        if (version > dbVersion) {
-            Zotero.debug("AFZ: [SETUP] upgrading database schema to version " + version);
-            try {
-		        // make backup of database first
-		        yield this.db.backupDatabase(dbVersion, true);
-                
-                this.db.beginTransaction();
-                for (var i=dbVersion,ilen=version+1;i<ilen;i+=1) {
-                    // Next version
-                    // if (i === 15) {
-                    //   Do stuff
-                    //}
-                }
-                yield this.setDBVersion('abbreviations', version);
-                this.db.commitTransaction();
-		        
-            } catch (e) {
-                Zotero.debug("AFZ: [ERROR] failure during setup: "+e);
-                this.db.rollbackTransaction();
-                throw("AFZ: [ERROR] failure during setup: " + e);
-            }
-        }
-    }
+		yield this.db.executeTransaction(function* () {
+			var dbVersion = yield this.getDBVersion('abbreviations');
+			if (version > dbVersion) {
+				Zotero.debug("AFZ: [SETUP] upgrading database schema to version " + version);
+				try {
+					// make backup of database first
+					yield this.db.backupDatabase(dbVersion, true);
+					
+					for (var i=dbVersion,ilen=version+1;i<ilen;i+=1) {
+						// Next version
+						// if (i === 15) {
+						//   Do stuff
+						//}
+					}
+					yield this.setDBVersion('abbreviations', version);
+					
+				} catch (e) {
+					Zotero.debug("AFZ: [ERROR] failure during setup: "+e);
+					throw("AFZ: [ERROR] failure during setup: " + e);
+				}
+			}
+		}.bind(this));
+	}
+} catch (e) {
+	dump("[AFZ] dbInit OOPS: " + e + "\n");
+}
 });

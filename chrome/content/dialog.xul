@@ -15,7 +15,6 @@
 	title="&abbrevs-filter.dialogTitle;"
 	width="800" height="500"
 	minwidth="800" minheight="500"
-    onload="Abbrevs_Filter_Dialog.init();"
 	ondialogextra1="AbbrevsFilter.exportList(window, document);"
 	ondialogextra2="AbbrevsFilter.importList(window, document);"
     buttonlabelcancel="Close"
@@ -25,8 +24,6 @@
 	persist="screenX screenY width height"
 	resizable="true"
 	buttons="cancel,extra1,extra2">
-
-  	<script src="dialog.js"/>
 
   <groupbox orient="vertical">
     <!-- style name -->
@@ -92,5 +89,7 @@
       <hbox flex="1"/>
     </hbox>
   </vbox>
+
+  <script src="dialog.js"/>
 
 </dialog>

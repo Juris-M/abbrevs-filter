@@ -14,7 +14,6 @@ var Abbrevs_Filter_Dialog = new function () {
 
     var io = window.arguments[0].wrappedJSObject;
 
-    this.init = init;
     this.handleJurisdictionAutoCompleteSelect = handleJurisdictionAutoCompleteSelect;
 
     var style = io.style;
@@ -38,7 +37,7 @@ var Abbrevs_Filter_Dialog = new function () {
     // Huh?
     var openFieldParent = null;
 
-    function init() {
+    //function init() {
 
         setTitle(listname, listTitle);
 
@@ -55,7 +54,7 @@ var Abbrevs_Filter_Dialog = new function () {
         for (var jurisdictionCode in io.style.opt.suppressedJurisdictions) {
             setJurisdictionNode(jurisdictionCode, io.style.opt.suppressedJurisdictions[jurisdictionCode]);
         }
-    }
+    //}
 
     function setTitle(listname, listTitle) {
         var listNameNode = document.getElementById("abbrevs-filter-list-name");
@@ -465,19 +464,23 @@ var Abbrevs_Filter_Dialog = new function () {
     }
 
     function addJurisdictionValues(result) {
-        var sql = "SELECT COUNT(*) FROM suppressme WHERE listID=? AND jurisdictionID=?";
-        if (!AFZ.db.valueQuery(sql,[result.listID,result.jurisdictionID])) {
-            var sql = "INSERT INTO suppressme VALUES (NULL,?,?)";
-            AFZ.db.query(sql,[result.jurisdictionID,result.listID]);
-        }
+		AFZ.db.executeTransaction(function* () {
+			var sql = "SELECT COUNT(*) FROM suppressme WHERE listID=? AND jurisdictionID=?";
+			if (!AFZ.db.valueQuery(sql,[result.listID,result.jurisdictionID])) {
+				var sql = "INSERT INTO suppressme VALUES (NULL,?,?)";
+				AFZ.db.query(sql,[result.jurisdictionID,result.listID]);
+			}
+		}.bind(AFZ));
     };
 
     function removeJurisdictionValues(result) {
-        var sql = "SELECT COUNT(*) FROM suppressme WHERE listID=? AND jurisdictionID=?";
-        if (AFZ.db.valueQuery(sql,[result.listID,result.jurisdictionID])) {
-            var sql = "DELETE FROM suppressme WHERE listID=? AND jurisdictionID=?";
-            AFZ.db.query(sql,[result.listID,result.jurisdictionID]);
-        }
+		AFZ.db.executeTransaction(function* () {
+			var sql = "SELECT COUNT(*) FROM suppressme WHERE listID=? AND jurisdictionID=?";
+			if (AFZ.db.valueQuery(sql,[result.listID,result.jurisdictionID])) {
+				var sql = "DELETE FROM suppressme WHERE listID=? AND jurisdictionID=?";
+				AFZ.db.query(sql,[result.listID,result.jurisdictionID]);
+			}
+		}.bind(AFZ));
     };
 
     function confirmJurisdictionValues (jurisdiction,styleID) {
@@ -503,8 +506,10 @@ var Abbrevs_Filter_Dialog = new function () {
     }
 
     function addDB (arg, value) {
-        var sql = "INSERT INTO " + arg + " VALUES(NULL,?);";
-        AFZ.db.query(sql,[value]);
+		AFZ.db.executeTransaction(function* () {
+			var sql = "INSERT INTO " + arg + " VALUES(NULL,?);";
+			AFZ.db.query(sql,[value]);
+		}.bind(AFZ));
     }
 
     function getDB (arg, value) {
