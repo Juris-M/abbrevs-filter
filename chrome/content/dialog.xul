@@ -23,6 +23,7 @@
 	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
 	persist="screenX screenY width height"
 	resizable="true"
+	onload="Abbrevs_Filter_Dialog.init();"
 	buttons="cancel,extra1,extra2">
 
   <groupbox orient="vertical">
@@ -56,9 +57,9 @@
     <vbox flex="1" style="overflow:auto;">
       <grid>
         <columns>
-          <column/>
-          <column/>
           <column flex="1"/>
+          <column flex="2"/>
+          <column flex="3"/>
         </columns>
         <rows id="abbrevs-filter-abbrevs-list">
         </rows>
