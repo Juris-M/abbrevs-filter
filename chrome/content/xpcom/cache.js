@@ -2,8 +2,6 @@ AbbrevsFilter.prototype.setCacheFromCitation = Zotero.Promise.coroutine(function
 	var CSL = this.CSL;
 	var jurisdiction, category, rawvals;
 
-	
-
 	let rawFieldFunction = {
         "container-title": function (item, varname) {
             return item[varname] ? [item[varname]] : [];
@@ -60,22 +58,6 @@ AbbrevsFilter.prototype.setCacheFromCitation = Zotero.Promise.coroutine(function
         }
     };
 
-	// For fields
-	for (var i=0,ilen=citation.citationItems.length;i<ilen;i++) {
-		var id = citation.citationItems[i].id;
-		var item = this.sys.retrieveItem(id);
-		jurisdiction = item.jurisdiction ? item.jurisdiction : "default";
-		for (let field of Object.keys(item)) {
-			category = CSL.FIELD_CATEGORY_REMAP[field];
-			if (category) {
-				rawvals = rawFieldFunction[category](item, field);
-				for (var j=0,jlen=rawvals.length;j<jlen;j++) {
-					yield this._setCacheEntry(listname, obj, jurisdiction, category, rawvals[j]);
-				}
-			}
-		}
-	}
-	
 	// For items
     let rawItemFunction = {
         "nickname": function (item) {
@@ -102,11 +84,29 @@ AbbrevsFilter.prototype.setCacheFromCitation = Zotero.Promise.coroutine(function
         }
     }
 	
-	for (let key in rawItemFunction) {
-		rawvals = rawItemFunction[key](item);
-		for (let i=0,ilen=rawvals.length;i<ilen;i++) {
-			this._setCacheEntry(listname, obj, "default", key, rawvals[i]);
+	// process
+	for (var i=0,ilen=citation.citationItems.length;i<ilen;i++) {
+		var id = citation.citationItems[i].id;
+		var item = this.sys.retrieveItem(id);
+		jurisdiction = item.jurisdiction ? item.jurisdiction : "default";
+		// fields
+		for (let field of Object.keys(item)) {
+			category = CSL.FIELD_CATEGORY_REMAP[field];
+			if (category) {
+				rawvals = rawFieldFunction[category](item, field);
+				for (var j=0,jlen=rawvals.length;j<jlen;j++) {
+					yield this._setCacheEntry(listname, obj, jurisdiction, category, rawvals[j]);
+				}
+			}
 		}
+		// items
+		for (let key in rawItemFunction) {
+			rawvals = rawItemFunction[key](item);
+			for (let i=0,ilen=rawvals.length;i<ilen;i++) {
+				yield this._setCacheEntry(listname, obj, "default", key, rawvals[i]);
+			}
+		}
+		yield this.Zotero.CachedJurisdictionData.load(item);
 	}
 });
 

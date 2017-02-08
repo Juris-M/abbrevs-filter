@@ -15,6 +15,7 @@ var Abbrevs_Filter_Dialog = new function () {
     var io = window.arguments[0].wrappedJSObject;
 
     this.handleJurisdictionAutoCompleteSelect = handleJurisdictionAutoCompleteSelect;
+	this.init = init;
 
     var style = io.style;
     var transform = io.style.transform;
@@ -37,24 +38,25 @@ var Abbrevs_Filter_Dialog = new function () {
     // Huh?
     var openFieldParent = null;
 
-    //function init() {
-
-        setTitle(listname, listTitle);
-
-        populateCategoryMenu();
-        setupCurrentCategoryList(category);
-
-        buildResourceList();
-        setImportSourceSelect();
-
-        /*
-         * Jurisdiction suppression UI initialization
-         */
-
-        for (var jurisdictionCode in io.style.opt.suppressedJurisdictions) {
-            setJurisdictionNode(jurisdictionCode, io.style.opt.suppressedJurisdictions[jurisdictionCode]);
-        }
-    //}
+    function init () {
+		Zotero.Promise.spawn(function* () {
+			setTitle(listname, listTitle);
+		
+			populateCategoryMenu();
+			setupCurrentCategoryList(category);
+			
+			buildResourceList();
+			setImportSourceSelect();
+			
+			/*
+			 * Jurisdiction suppression UI initialization
+			 */
+			
+			for (var jurisdictionCode in io.style.opt.suppressedJurisdictions) {
+				yield setJurisdictionNode(jurisdictionCode, io.style.opt.suppressedJurisdictions[jurisdictionCode]);
+			}
+		}, this);
+	}
 
     function setTitle(listname, listTitle) {
         var listNameNode = document.getElementById("abbrevs-filter-list-name");
@@ -82,7 +84,7 @@ var Abbrevs_Filter_Dialog = new function () {
         }
         categoryMenu.appendChild(categorymenupopup);
     }
-
+	
     function setCurrentCategory(category) {
         prefs.setCharPref("currentCategory", category);
         var categoryMenu = document.getElementById("abbrevs-filter-category-menu");
@@ -106,10 +108,10 @@ var Abbrevs_Filter_Dialog = new function () {
             var abbreviationsContainer = emptyAbbreviationsList();
             var keys = getAbbreviationKeys(category);
             for (var i = 0, ilen = keys.length; i < ilen; i += 1) {
-                var jurisdiction = keys[i][0];
+                var jurisdictionCode = keys[i][0];
                 var key = keys[i][1];
 
-                var row = writeDataToClosedRow(listname, jurisdiction, category, key);
+                var row = writeDataToClosedRow(listname, jurisdictionCode, category, key);
                 abbreviationsContainer.appendChild(row);
                 row.addEventListener('click', openRow, false);
             }
@@ -182,7 +184,7 @@ var Abbrevs_Filter_Dialog = new function () {
         }
     }
 
-    function writeDataToClosedRow(listname, jurisdiction, category, key) {
+    function writeDataToClosedRow(listname, jurisdictionCode, category, key) {
         // Node order is: listname, jurisdiction, category, raw, abbrev
 
         // Row
@@ -194,10 +196,11 @@ var Abbrevs_Filter_Dialog = new function () {
         
         // Jurisdiction
         var rawlabel = document.createElement("label");
-        rawlabel.setAttribute("value", jurisdiction);
+		var jurisdictionName = Zotero.CachedJurisdictionData.jurisdictionNameFromId(jurisdictionCode);
+        rawlabel.setAttribute("value", jurisdictionName);
         rawlabel.setAttribute("crop", "end");
-        rawlabel.setAttribute("width", "100");
-        rawlabel.setAttribute("tooltiptext", jurisdiction);
+        //rawlabel.setAttribute("width", "100");
+        //rawlabel.setAttribute("tooltiptext", jurisdiction);
         row.appendChild(rawlabel);
 
         // Category
@@ -234,8 +237,8 @@ var Abbrevs_Filter_Dialog = new function () {
             }
             key = entryItem.id;
         }
-        abbrevbox.setAttribute("value", transform.abbrevs[jurisdiction][category][key]);
-        abbrevbox.setAttribute("flex", "1");
+        abbrevbox.setAttribute("value", transform.abbrevs[jurisdictionCode][category][key]);
+        //abbrevbox.setAttribute("flex", "1");
         row.appendChild(abbrevbox);
         
         return row;
@@ -256,6 +259,7 @@ var Abbrevs_Filter_Dialog = new function () {
 
         var data = readDataFromClosedRow(row);
 
+/*
         // Remap if in hereinafter, setting system_id
         var rawtext;
         if ("hereinafter" === data.categoryVal) {
@@ -277,15 +281,15 @@ var Abbrevs_Filter_Dialog = new function () {
         data.rawNode.removeAttribute("value");
         data.rawNode.removeAttribute("crop");
         data.rawNode.appendChild(rawtext);
-
-        
+*/  
+      
         // Remove display box.
         row.removeChild(data.abbrevNode);
 
         // Create input box
         var inputbox = document.createElement("textbox");
         inputbox.setAttribute("value", data.abbrevVal);
-        inputbox.setAttribute("flex", "1");
+        //inputbox.setAttribute("flex", "1");
         row.appendChild(inputbox);
         inputbox.value = data.abbrevVal;
         inputbox.selectionStart = data.abbrevVal.length;
@@ -330,8 +334,9 @@ var Abbrevs_Filter_Dialog = new function () {
         data.jurisdictionVal = row.firstChild.nextSibling.getAttribute("value");
         data.categoryVal = row.firstChild.nextSibling.nextSibling.getAttribute("value");
         data.rawNode = row.lastChild.previousSibling;
-        data.rawNodeTextNode = data.rawNode.firstChild;
-        data.rawVal = data.rawNodeTextNode.nodeValue;
+        //data.rawNodeTextNode = data.rawNode.firstChild;
+        //data.rawVal = data.rawNodeTextNode.nodeValue;
+        data.rawVal = data.rawNode.nodeValue;
         data.abbrevNode = row.lastChild;
         data.abbrevVal = data.abbrevNode.value;
         return data;
@@ -342,9 +347,9 @@ var Abbrevs_Filter_Dialog = new function () {
         var data = readDataFromOpenRow(row);
 
         // Shorten view of key
-        data.rawNode.removeChild(data.rawNodeTextNode);
-        data.rawNode.setAttribute("value", data.rawVal);
-        data.rawNode.setAttribute("crop", "end");
+        //data.rawNode.removeChild(data.rawNodeTextNode);
+        //data.rawNode.setAttribute("value", data.rawVal);
+        //data.rawNode.setAttribute("crop", "end");
         
         row.removeChild(data.abbrevNode);
         
@@ -352,8 +357,10 @@ var Abbrevs_Filter_Dialog = new function () {
         if ("hereinafter" === data.categoryVal) {
              data.rawVal = data.rawNode.getAttribute("system_id");
         }
-
-        AFZ.saveEntry(data.listnameVal, data.jurisdictionVal, data.categoryVal, data.rawVal, data.abbrevVal);
+		
+		var jurisdictionCode = Zotero.CachedJurisdictionData.jurisdictionIdFromName(data.jurisdictionVal);
+		
+        AFZ.saveEntry(data.listnameVal, jurisdictionCode, data.categoryVal, data.rawVal, data.abbrevVal);
 
         // Reverse remap hereinafter key here
         if ("hereinafter" === data.categoryVal) {
@@ -367,7 +374,7 @@ var Abbrevs_Filter_Dialog = new function () {
         }
 
         // Assuming all of that went well, set value on memory object
-        transform.abbrevs[data.jurisdictionVal][data.categoryVal][data.rawVal] = data.abbrevVal;
+        transform.abbrevs[jurisdictionCode][data.categoryVal][data.rawVal] = data.abbrevVal;
         
         var abbrevbox = document.createElement("description");
         abbrevbox.setAttribute("value", data.abbrevVal);
@@ -384,18 +391,20 @@ var Abbrevs_Filter_Dialog = new function () {
     }
 
     function handleJurisdictionAutoCompleteSelect (textbox) {
-		var result;
-		if (textbox.value) {
-			// Comment is the tag code, value is the tag description
-			result = getJurisdictionResult(textbox);
-		}
-        if (result) {
-            setJurisdictionNode(result.comment,result.val);
-            addToSuppressJurisdictions(result.comment, result.val);
-        }
-        textbox.value = '';
-        textbox.blur();
-    }
+		return Zotero.spawn(function* () {
+			var result;
+			if (textbox.value) {
+				// Comment is the tag code, value is the tag description
+				result = getJurisdictionResult(textbox);
+			}
+			if (result) {
+				yield setJurisdictionNode(result.comment,result.val);
+				yield addToSuppressJurisdictions(result.comment, result.val);
+			}
+			textbox.value = '';
+			textbox.blur();
+		})
+	}
 
     function buildResourceList() {
         var popup = document.getElementById('resource-list-popup');
@@ -427,7 +436,7 @@ var Abbrevs_Filter_Dialog = new function () {
      * Jurisdiction suppression UI utility functions
      */
 
-    function setJurisdictionNode (comment,value) {
+    var setJurisdictionNode = Zotero.Promise.coroutine(function* (comment,value) {
         var suppressionList = document.getElementById("suppression-list");
         var jurisdictionNode = document.createElement('label');
         jurisdictionNode.setAttribute('id','sj-' + comment.replace(':','-','g'));
@@ -443,80 +452,81 @@ var Abbrevs_Filter_Dialog = new function () {
             if (goAhead) {
                 node.parentNode.removeChild(node);
                 var jurisdiction = node.id.slice(3).replace("-",":","g");
-                removeFromSuppressJurisdictions(jurisdiction);
+                yield removeFromSuppressJurisdictions(jurisdiction);
             }
         }, false);
         suppressionList.appendChild(jurisdictionNode);
-    }
+    });
 
-    function addToSuppressJurisdictions (jurisdiction, jurisdictionName) {
+	var addToSuppressJurisdictions = Zotero.Promise.coroutine(function* (jurisdiction, jurisdictionName) {
+		// XXX Memory and DB
+		var result = yield confirmJurisdictionValues(jurisdiction,listname);
+		yield addJurisdictionValues(result);
+		io.style.opt.suppressedJurisdictions[jurisdiction] = jurisdictionName;
+	});
+	
+    var removeFromSuppressJurisdictions = Zotero.Promise.coroutine(function* (jurisdiction) {
         // XXX Memory and DB
-        var result = confirmJurisdictionValues(jurisdiction,listname);
-        addJurisdictionValues(result);
-        io.style.opt.suppressedJurisdictions[jurisdiction] = jurisdictionName;
-    }
-
-    function removeFromSuppressJurisdictions (jurisdiction) {
-        // XXX Memory and DB
-        var result = confirmJurisdictionValues(jurisdiction,listname);
-        removeJurisdictionValues(result);
+        var result = yield confirmJurisdictionValues(jurisdiction,listname);
+        yield removeJurisdictionValues(result);
         delete io.style.opt.suppressedJurisdictions[jurisdiction];
-    }
-
-    function addJurisdictionValues(result) {
+    });
+	
+    var addJurisdictionValues = Zotero.Promise.coroutine(function* (result) {
 		AFZ.db.executeTransaction(function* () {
 			var sql = "SELECT COUNT(*) FROM suppressme WHERE listID=? AND jurisdictionID=?";
-			if (!AFZ.db.valueQuery(sql,[result.listID,result.jurisdictionID])) {
+			var count = yield AFZ.db.valueQueryAsync(sql,[result.listID,result.jurisdictionID]);
+			if (!count) {
 				var sql = "INSERT INTO suppressme VALUES (NULL,?,?)";
-				AFZ.db.query(sql,[result.jurisdictionID,result.listID]);
+				AFZ.db.queryAsync(sql,[result.jurisdictionID,result.listID]);
 			}
-		}.bind(AFZ));
-    };
-
-    function removeJurisdictionValues(result) {
+		});
+    });
+	
+    var removeJurisdictionValues = Zotero.Promise.coroutine(function* (result) {
 		AFZ.db.executeTransaction(function* () {
 			var sql = "SELECT COUNT(*) FROM suppressme WHERE listID=? AND jurisdictionID=?";
-			if (AFZ.db.valueQuery(sql,[result.listID,result.jurisdictionID])) {
+			if (AFZ.db.valueQueryAsync(sql,[result.listID,result.jurisdictionID])) {
 				var sql = "DELETE FROM suppressme WHERE listID=? AND jurisdictionID=?";
-				AFZ.db.query(sql,[result.listID,result.jurisdictionID]);
+				AFZ.db.queryAsync(sql,[result.listID,result.jurisdictionID]);
 			}
-		}.bind(AFZ));
-    };
-
-    function confirmJurisdictionValues (jurisdiction,styleID) {
+		});
+    });
+	
+    var confirmJurisdictionValues = Zotero.Promise.coroutine(function* (jurisdiction,styleID) {
         var ret = {};
-        var check = checkDB('jurisdiction',jurisdiction);
+        var check = yield checkDB('jurisdiction',jurisdiction);
         if (!check) {
-            addDB('jurisdiction', jurisdiction);
+            yield addDB('jurisdiction', jurisdiction);
         };
-        ret.jurisdictionID = getDB('jurisdiction', jurisdiction);
-        check = checkDB('list',styleID);
+        ret.jurisdictionID = yield getDB('jurisdiction', jurisdiction);
+        check = yield checkDB('list',styleID);
         if (!check) {
-            addDB('list', styleID);
+            yield addDB('list', styleID);
         }
-        ret.listID = getDB('list', styleID);
+        ret.listID = yield getDB('list', styleID);
         return ret;
-    }
-
-
-    function checkDB (arg, value) {
+    });
+	
+    var checkDB = Zotero.Promise.coroutine(function* (arg, value) {
         var sql = "SELECT COUNT(*) FROM " + arg + " WHERE " + arg + "=?";
-        var ret = AFZ.db.valueQuery(sql,[value]);
+        var ret = yield AFZ.db.valueQueryAsync(sql,[value]);
         return ret;
-    }
-
-    function addDB (arg, value) {
+    });
+	
+    var addDB = Zotero.Promise.coroutine(function* (arg, value) {
 		AFZ.db.executeTransaction(function* () {
 			var sql = "INSERT INTO " + arg + " VALUES(NULL,?);";
-			AFZ.db.query(sql,[value]);
-		}.bind(AFZ));
-    }
-
-    function getDB (arg, value) {
+			AFZ.db.queryAsync(sql,[value]);
+		});
+    });
+	
+    var getDB = Zotero.Promise.coroutine(function* (arg, value) {
         var sql = "SELECT " + arg + "ID FROM " + arg + " WHERE " + arg + "=?;";
-        return AFZ.db.valueQuery(sql,[value]);
-    }
-
+        ret = yield AFZ.db.valueQueryAsync(sql,[value]);
+		return ret;
+    });
+	
     /*
      * Event handlers for jurisdiction suppression autocomplete UI
      */
@@ -545,5 +555,7 @@ var Abbrevs_Filter_Dialog = new function () {
 		}
 		return false;
     }
+
+	
 
 }
