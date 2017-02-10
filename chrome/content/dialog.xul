@@ -71,7 +71,7 @@
     <hbox>
       <vbox>
         <hbox flex="1"/>
-        <label id="switch-source" style="font-weight:bold;cursor:pointer;" value="Import from defaults:"/>
+        <label id="switch-source" style="font-weight:bold;cursor:pointer;border:1px solid #bbbbbb;border-radius:4px;padding:4px;" value="Import from defaults"/>
         <hbox flex="1"/>
       </vbox>
       <menulist flex="1" id="resource-list-menu">
