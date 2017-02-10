@@ -1,4 +1,11 @@
-AbbrevsFilter.prototype.setCacheFromCitation = Zotero.Promise.coroutine(function* (listname, obj, citation) {
+
+// Okay!
+// This needs to Do The Right Thing for jurisdiction and court.
+
+AbbrevsFilter.prototype.setCacheFromCitation = Zotero.Promise.coroutine(function* (styleEngine, citation) {
+	var listname = styleEngine.opt.styleID;
+	var obj = styleEngine.transform.abbrevs;
+	var suppressedJurisdictions = styleEngine.opt.suppressedJurisdictions;
 	var CSL = this.CSL;
 	var jurisdiction, category, rawvals;
 
@@ -83,19 +90,49 @@ AbbrevsFilter.prototype.setCacheFromCitation = Zotero.Promise.coroutine(function
             return item.id;
         }
     }
-	
+
+	var _registerEntries = Zotero.Promise.coroutine(function* (val, jurisdictions) {
+		val = CSL.getJurisdictionNameAndSuppress(styleEngine, val);
+		for (let i=jurisdictions.length;i>0;i--) {
+			let jurisdiction = jurisdictions.slice(0,i).join(":");
+			yield this._setCacheEntry(listname, obj, jurisdiction, category, val);
+		}
+		yield this._setCacheEntry(listname, obj, "default", category, val);
+	}.bind(this));
+
 	// process
 	for (var i=0,ilen=citation.citationItems.length;i<ilen;i++) {
 		var id = citation.citationItems[i].id;
 		var item = this.sys.retrieveItem(id);
-		jurisdiction = item.jurisdiction ? item.jurisdiction : "default";
+		if (item.jurisdiction) {
+			var jurisdictions = item.jurisdiction.split(":");
+		} else {
+			var jurisdictions = [];
+		}
 		// fields
 		for (let field of Object.keys(item)) {
 			category = CSL.FIELD_CATEGORY_REMAP[field];
 			if (category) {
 				rawvals = rawFieldFunction[category](item, field);
 				for (var j=0,jlen=rawvals.length;j<jlen;j++) {
-					yield this._setCacheEntry(listname, obj, jurisdiction, category, rawvals[j]);
+					var val = rawvals[j];
+					if (field === "jurisdiction") {
+						yield _registerEntries(val, jurisdictions);
+						if (item.multi && item.multi._keys.jurisdiction) {
+							for (var key of Object.keys(item.multi._keys.jurisdiction)) {
+								val = item.multi._keys[key];
+								yield _registerEntries(val, jurisdictions);
+							}
+						}
+					} else {
+						yield this._setCacheEntry(listname, obj, jurisdiction, category, val);
+						if (item.multi && item.multi._keys[field]) {
+							for (var key of Object.keys(item.multi._keys[field])) {
+								val = item.multi._keys[key];
+								yield _registerEntries(val, jurisdictions);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -103,7 +140,7 @@ AbbrevsFilter.prototype.setCacheFromCitation = Zotero.Promise.coroutine(function
 		for (let key in rawItemFunction) {
 			rawvals = rawItemFunction[key](item);
 			for (let i=0,ilen=rawvals.length;i<ilen;i++) {
-				yield this._setCacheEntry(listname, obj, "default", key, rawvals[i]);
+				yield _registerEntries(rawvals[i], jurisdictions);
 			}
 		}
 		yield this.Zotero.CachedJurisdictionData.load(item);
@@ -119,38 +156,25 @@ AbbrevsFilter.prototype._setCacheEntry = Zotero.Promise.coroutine(function* (lis
 	// stopping at the first hit.
 	let rawID = yield this._getStringID(rawval);
 	if (rawID) {
-		var jurisdictionSplit = jurisdiction.split("-");
-		var jurisdictionList = ["default"];
-		if (jurisdiction) {
-			for (var i=0,ilen=jurisdictionSplit.length;i<ilen;i++) {
-				jurisdictionList.push(jurisdictionSplit.slice(0, i+1).join("-"));
-			}
+		var jurisd = jurisdiction;
+		yield this._setKeys(listname, jurisd, category);
+		if (!obj[jurisd]) {
+			obj[jurisd] = {};
 		}
-		for (var i=jurisdictionList.length-1;i>-1;i--) {
-			let jurisd = jurisdictionList[i];
-			yield this._setKeys(listname, jurisd, category);
-
-			if (!obj[jurisd]) {
-				obj[jurisd] = {};
-			}
-			if (!obj[jurisd][category]) {
-				obj[jurisd][category] = {};
-			}
-			if (obj[jurisd][category][rawval]) {
-				break;
-			}
-			sql = "SELECT S.string AS abbrev FROM abbreviations A JOIN strings S ON A.abbrID=S.stringID WHERE listID=? AND jurisdictionID=? AND categoryID=? AND rawID=?";
-			abbrev = yield this.db.valueQueryAsync(sql, [kc[listname], kc[jurisd], kc[category], rawID]);
-			if (abbrev) {
-				obj[jurisd][category][rawval] = abbrev;
-				break;
-			}
+		if (!obj[jurisd][category]) {
+			obj[jurisd][category] = {};
+		}
+		sql = "SELECT S.string AS abbrev FROM abbreviations A JOIN strings S ON A.abbrID=S.stringID WHERE listID=? AND jurisdictionID=? AND categoryID=? AND rawID=?";
+		abbrev = yield this.db.valueQueryAsync(sql, [kc[listname], kc[jurisd], kc[category], rawID]);
+		if (abbrev) {
+			obj[jurisd][category][rawval] = abbrev;
 		}
 	}
 });
 
 AbbrevsFilter.prototype._setKeys = Zotero.Promise.coroutine(function* (listname, jurisdiction, category) {
 	var me = this;
+	// Aha! Missed that. Needs yield on executeTransaction.
 	yield this.db.executeTransaction(function* () {
 		var sql, res, abbrID, kc = this.keycache;
 		let keys = {
