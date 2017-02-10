@@ -22,7 +22,7 @@ AbbrevsFilter.prototype.saveEntry = Zotero.Promise.coroutine(function* (listname
 			}
 		} else {
 			if (!res || abbrevval !== res.abbrevval) {
-				if (!res || res.length === 0) {
+				if (!res) {
 					// Create a new entry
 					sql = "INSERT INTO abbreviations VALUES (NULL, ?, ?, ?, ?, ?)";
 					yield this.db.queryAsync(sql, [kc[listname], kc[jurisdiction], kc[category], rawID, abbrID]);
