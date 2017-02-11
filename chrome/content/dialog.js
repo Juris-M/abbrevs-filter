@@ -23,6 +23,7 @@ var Abbrevs_Filter_Dialog = new function () {
     var listTitle = style.opt.styleName ? style.opt.styleName : style.opt.styleID;
 
     var AFZ = io.AFZ;
+	AFZ.transform = transform;
     // Used by import, export
     AFZ.listname = listname;
     var Zotero = AFZ.Zotero;
@@ -358,7 +359,9 @@ var Abbrevs_Filter_Dialog = new function () {
 			
 			var jurisdictionCode = yield Zotero.CachedJurisdictionData.setJurisdictionByIdOrName(data.jurisdictionVal);
 			
-			yield AFZ.saveEntry(data.listnameVal, jurisdictionCode, data.categoryVal, data.rawVal, data.abbrevVal);
+			yield AFZ.db.executeTransaction(function* () {
+				yield AFZ.saveEntry(data.listnameVal, jurisdictionCode, data.categoryVal, data.rawVal, data.abbrevVal);
+			});
 
 			// Reverse remap hereinafter key here
 			if ("hereinafter" === data.categoryVal) {

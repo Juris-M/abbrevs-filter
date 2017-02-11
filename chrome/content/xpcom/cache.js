@@ -157,7 +157,9 @@ AbbrevsFilter.prototype._setCacheEntry = Zotero.Promise.coroutine(function* (lis
 	let rawID = yield this._getStringID(rawval);
 	if (rawID) {
 		var jurisd = jurisdiction;
-		yield this._setKeys(listname, jurisd, category);
+		yield this.db.executeTransaction(function* () {
+			yield this._setKeys(listname, jurisd, category);
+		}.bind(this));
 		if (!obj[jurisd]) {
 			obj[jurisd] = {};
 		}
@@ -174,46 +176,41 @@ AbbrevsFilter.prototype._setCacheEntry = Zotero.Promise.coroutine(function* (lis
 
 AbbrevsFilter.prototype._setKeys = Zotero.Promise.coroutine(function* (listname, jurisdiction, category) {
 	var me = this;
-	// Aha! Missed that. Needs yield on executeTransaction.
-	yield this.db.executeTransaction(function* () {
-		var sql, res, abbrID, kc = this.keycache;
-		let keys = {
-			list: listname,
-			jurisdiction: jurisdiction,
-			category: category
+	var sql, res, abbrID, kc = this.keycache;
+	let keys = {
+		list: listname,
+		jurisdiction: jurisdiction,
+		category: category
+	}
+	for (let key in keys) {
+		if (!keys[key]) {
+			throw `[AFZ] No value for ${key} in _setKeys()`;
 		}
-		for (let key in keys) {
-			if (!keys[key]) {
-				throw `[AFZ] No value for ${key} in _setKeys()`;
+		if (!kc[keys[key]]) {
+			// Look up or create ID
+			sql = `SELECT ${key}ID FROM ${key} WHERE ${key}=?`;
+			let id = yield this.db.valueQueryAsync(sql, [keys[key]]);
+			if (!id) {
+				sql = `INSERT INTO ${key} VALUES (NULL, ?)`;
+				yield this.db.queryAsync(sql, [keys[key]]);
+				id = yield this.db.valueQueryAsync(sql, [keys[key]]);
 			}
-			if (!kc[keys[key]]) {
-				// Look up or create ID
-				sql = `SELECT ${key}ID FROM ${key} WHERE ${key}=?`;
-				let id = yield this.db.valueQueryAsync(sql, [keys[key]]);
-				if (!id) {
-					sql = `INSERT INTO ${key} VALUES (NULL, ?)`;
-					yield this.db.queryAsync(sql, [keys[key]]);
-					id = yield this.db.valueQueryAsync(sql, [keys[key]]);
-				}
-				kc[keys[key]] = id;
-			}
+			kc[keys[key]] = id;
 		}
-	}.bind(me));
+	}
 });
 
 AbbrevsFilter.prototype._getStringID = Zotero.Promise.coroutine(function* (str, forceID) {
 	var strID;
 	let me = this;
-	yield this.db.executeTransaction(function* () {
-		var sql = "SELECT stringID FROM strings WHERE string=?";
-		strID = yield this.db.valueQueryAsync(sql, [str]);
-		if (!strID && forceID) {
-			sql = "INSERT INTO strings VALUES (NULL, ?)";
-			yield this.db.queryAsync(sql, [str]);
-			sql = "SELECT stringID FROM strings WHERE string=?";
-			strID = yield this.db.valueQueryAsync(sql, str);
-		}
-	}.bind(me));
+	var sql = "SELECT stringID FROM strings WHERE string=?";
+	strID = yield this.db.valueQueryAsync(sql, [str]);
+	if (!strID && forceID) {
+		sql = "INSERT INTO strings VALUES (NULL, ?)";
+		yield this.db.queryAsync(sql, [str]);
+		sql = "SELECT stringID FROM strings WHERE string=?";
+		strID = yield this.db.valueQueryAsync(sql, str);
+	}
 	return strID;
 });
 

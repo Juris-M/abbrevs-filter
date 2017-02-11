@@ -1,6 +1,7 @@
-AbbrevsFilter.prototype.importList = function (window, document) {
+AbbrevsFilter.prototype.importList = Zotero.Promise.coroutine(function* (window, document) {
     var sql, sqlinsert;
     var Zotero = this.Zotero;
+    var CSL = this.CSL;
 	var listname = this.listname;
     
 	var mode = document.getElementById("abbrevs-filter-import-options").selectedIndex;
@@ -35,27 +36,57 @@ AbbrevsFilter.prototype.importList = function (window, document) {
         json_str = Zotero.File.getContentsFromURL('resource://abbrevs-filter/abbrevs/' + resourceListMenuValue);
     }
 
+	var importOneList = Zotero.Promise.coroutine(function* (obj, shy) {
+		for (var jurisdiction of Object.keys(obj)) {
+			for (var category of Object.keys(obj[jurisdiction])) {
+				for (var key of Object.keys(obj[jurisdiction][category])) {
+					var val = obj[jurisdiction][category][key];
+					yield this.saveEntry(listname, jurisdiction, category, key, val, shy);
+				}
+			}
+		}
+	}.bind(this));
+
     if (json_str) {
-        // Follow-on condition here
-        try {
-            var spec = {};
-            var listObj = JSON.parse(json_str);
-            if (listObj.xdata) {
-                listObj = listObj.xdata;
-                spec[listname] = [[listObj,mode]];
-            } else {
-                var normalizedObjects = normalizeObjects(listObj);
-                spec[listname] = [];
-                for (var i=0,ilen=normalizedObjects.length;i<ilen;i++) {
-                    var normalizedObject = normalizedObjects[i];
-                    spec[listname].push([normalizedObject,mode]);
-                }
-            }
-            var launchImportProgressMeter = this.launchImportProgressMeter;
-            launchImportProgressMeter(spec);
-        } catch (e) {
-            Zotero.debug("AFZ: [ERROR] MLZ: failure attempting to import abbreviation list: "+e);
-        }
+        var listObj = JSON.parse(json_str);
+		this.db.executeTransaction(function* () {
+			switch (mode) {
+			case 0:
+				dump("XXX case 0\n");
+				var shy = true;
+				break;
+				;;
+			case 1:
+				dump("XXX case 1\n");
+				var shy = false;
+				break
+				;;
+			case 2:
+				dump("XXX case 2\n");
+				var sql = "SELECT listID FROM list WHERE list=?";
+				var listID = yield this.db.valueQueryAsync(sql, [listname]);
+				var sql = "DELETE FROM abbreviations WHERE listID=?";
+				yield this.db.queryAsync(sql, [listID]);
+				this.transform[listname] = {};
+				var shy = false;
+				break;
+				;;
+			default:
+				dump("XXX case X\n");
+				throw "This can't happen";
+				break;
+				;;
+			}
+			if (listObj.xdata) {
+				listObj = listObj.xdata;
+				yield importOneList(listObj, shy);
+			} else {
+				var normalizedObjects = normalizeObjects(listObj);
+				for (var i=0,ilen=normalizedObjects.length;i<ilen;i++) {
+					yield importOneList(normalizedObjects[i], shy);
+				}
+			}
+		}.bind(this));
 	}
     window.close();
 
@@ -71,7 +102,7 @@ AbbrevsFilter.prototype.importList = function (window, document) {
             // Protect against: null obj, obj without keys
             return;
         }
-        // Check if obj contains only conforming keys
+        // Check if obj contains (at least one?) conforming key
         if (jurisdiction && hasValidKeys(obj) && hasValidKeyValues(obj)) {
             // If so, sanitize the object and push into collector
             var newObj = {};
@@ -142,4 +173,4 @@ AbbrevsFilter.prototype.importList = function (window, document) {
             }
         }
     }
-}
+});
