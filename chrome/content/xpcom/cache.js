@@ -125,7 +125,7 @@ AbbrevsFilter.prototype.setCacheFromCitation = Zotero.Promise.coroutine(function
 							}
 						}
 					} else {
-						yield this._setCacheEntry(listname, obj, jurisdiction, category, val);
+						yield _registerEntries(val, jurisdictions);
 						if (item.multi && item.multi._keys[field]) {
 							for (var key of Object.keys(item.multi._keys[field])) {
 								val = item.multi._keys[key];
@@ -149,6 +149,7 @@ AbbrevsFilter.prototype.setCacheFromCitation = Zotero.Promise.coroutine(function
 
 AbbrevsFilter.prototype._setCacheEntry = Zotero.Promise.coroutine(function* (listname, obj, jurisdiction, category, rawval) {
 	if (!rawval) return;
+	
 	var sql, abbrev;
 	kc = this.keycache;
 	

@@ -124,6 +124,29 @@ var Abbrevs_Filter_Dialog = new function () {
         }
     }
 
+	function sorter(a, b) {
+		if (a[1] > b[1]) {
+			return 1
+		} else if (a[1] < b[1]) {
+			return -1
+		} else {
+			// "default" at top, then in order of ascending length
+			if (a[0] === b[0]) {
+				return 0;
+			} else if (a[0] === "default") {
+				return -1;
+			} else if (b[0] === "default") {
+				return 1;
+			} else if (a[0] > b[0]) {
+				return 1;
+			} else if (a[0] < b[0]) {
+				return -1;
+			} else {
+				return 0;
+			}
+		}
+	}
+
     function getAbbreviationKeys(category) {
         var keys = [];
         for (var jurisdiction in transform.abbrevs) {
@@ -136,7 +159,7 @@ var Abbrevs_Filter_Dialog = new function () {
                 keys.push([jurisdiction, key]);
             }
         }
-        keys.sort(function(a,b){if (a[1] > b[1]) {return 1} else if (a[1] < b[1]) {return -1} else {return 0}});
+        keys.sort(sorter);
         return keys;
     }
 
@@ -200,6 +223,11 @@ var Abbrevs_Filter_Dialog = new function () {
 		var jurisdictionName = Zotero.CachedJurisdictionData.jurisdictionNameFromId(jurisdictionCode);
         rawlabel.setAttribute("value", jurisdictionName);
         rawlabel.setAttribute("crop", "end");
+		if (jurisdictionName === "default") {
+			rawlabel.setAttribute("style", "font-weight:bold;");
+		} else {
+			rawlabel.setAttribute("style", "font-size:smaller;");
+		}
         //rawlabel.setAttribute("width", "100");
         //rawlabel.setAttribute("tooltiptext", jurisdiction);
         row.appendChild(rawlabel);
