@@ -11,19 +11,6 @@ var AbbrevsFilter;
 var AbbrevsFilterFactory;
 var AbbrevsService;
 
-
-function ifZotero(succeed, fail) {
-    var ZoteroClass = Cc["@zotero.org/Zotero;1"];
-    if (ZoteroClass) {
-        Zotero = ZoteroClass
-	        .getService(Ci.nsISupports)
-	        .wrappedJSObject;
-        succeed ? succeed(Zotero) : null;
-    } else {
-        fail ? fail() : null;
-    }
-}
-
 // Preferences
 // From https://developer.mozilla.org/en-US/Add-ons/How_to_convert_an_overlay_extension_to_restartless
 function getGenericPref(branch,prefName)
@@ -71,26 +58,22 @@ function setUCharPref(prefName,text,branch)  // Unicode setCharPref
 	branch.setComplexValue(prefName, Components.interfaces.nsISupportsString, string);
 }
 
-
-var initializePlugin = function(Zotero) {
-
-	dump("XXX initializePlugin\n");
+var initializePlugin = function() {
+    Zotero = Cc["@zotero.org/Zotero;1"]
+	    .getService(Ci.nsISupports)
+	    .wrappedJSObject;
 	if (AbbrevsService && AbbrevsFilterFactory) {
 		const registrar = Components.manager.QueryInterface(Ci.nsIComponentRegistrar);
 		registrar.unregisterFactory(AbbrevsService.prototype.classID,
 									AbbrevsFilterFactory);
 	}
-	dump("XXX OK\n");
-	
 	// Set up preferences
 	Services.scriptloader.loadSubScript("chrome://abbrevs-filter/content/defaultprefs.js",
 										{pref:setDefaultPref} );
-
 	// Empty context for build
 	var buildContext = {
 		Zotero: Zotero
 	};
-
 	// Build and instantiate the component
 	var xpcomFiles = [
 		"component",
@@ -106,11 +89,9 @@ var initializePlugin = function(Zotero) {
 	for (var i=0, ilen=xpcomFiles.length; i < ilen; i += 1) {
 		Services.scriptloader.loadSubScript("chrome://abbrevs-filter/content/xpcom/" + xpcomFiles[i] + ".js", buildContext);
 	}
-
 	AbbrevsService = function () {
 		this.wrappedJSObject = new buildContext.AbbrevsFilter();
 	};
-
 	// Define the service
 	AbbrevsService.prototype = {
 		classDescription: 'Juris-M Abbreviation Filter',
@@ -119,7 +100,6 @@ var initializePlugin = function(Zotero) {
 		service: true,
 		QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsISupports])
 	}
-
 	// Plugin factory
 	AbbrevsFilterFactory = Object.freeze({
 		createInstance: function(aOuter, aIID) {
@@ -129,7 +109,6 @@ var initializePlugin = function(Zotero) {
 		loadFactory: function (aLock) { /* unused */ },
 		QueryInterface: XPCOMUtils.generateQI([Ci.nsIFactory])
 	});
-
 	const registrar = Components.manager.QueryInterface(Ci.nsIComponentRegistrar);
 	registrar.registerFactory(AbbrevsService.prototype.classID,
 							  AbbrevsService.prototype.classDescription,
@@ -140,47 +119,22 @@ var initializePlugin = function(Zotero) {
 	AbbrevsFilter.initComponent(Zotero);
 }.bind(this);
 
-var startupObserver = {
-	observe: function(subject, topic, data) {
-		ifZotero(
-			function (Zotero) {
-				initializePlugin(Zotero);
-			},
-			null
-		);
-	},
-	register: function() {
-		var observerService = Components.classes["@mozilla.org/observer-service;1"]
-			.getService(Components.interfaces.nsIObserverService);
-		observerService.addObserver(this, "final-ui-startup", false);
-	},
-	unregister: function() {
-		var observerService = Components.classes["@mozilla.org/observer-service;1"]
-			.getService(Components.interfaces.nsIObserverService);
-		observerService.removeObserver(this, "final-ui-startup");
-	}
-}
-
 function domListener (event) {
 	var doc = event.target;
 	if (doc.getElementById("abbrevs-button")) return;
-
-	// Conditions: Open CSL Editor or one of the integration plugins
-
-	var Zotero = Cc["@zotero.org/Zotero;1"].getService(Ci.nsISupports).wrappedJSObject;
-
+	
+	// To be executed when opening CSL Editor or one of the integration plugins
 	if (doc.getElementById('abbrevs-button')) return;
 
 	if (doc.documentElement.getAttribute('id') === 'csl-edit') {
 
-		var Zotero = Cc["@zotero.org/Zotero;1"].getService(Ci.nsISupports).wrappedJSObject;
-
-
+		Zotero = Cc["@zotero.org/Zotero;1"].getService(Ci.nsISupports).wrappedJSObject;
+		
 		var AbbrevsFilter = Components.classes['@juris-m.github.io/abbrevs-filter;1'].getService(Components.interfaces.nsISupports).wrappedJSObject;
 		AbbrevsFilter.initWindow(doc.defaultView, doc);
-
+		
 		var hasEngine = false;
-
+		
 		var refresh = doc.getElementById("preview-refresh-button");
 		var cslmenu = doc.getElementById("zotero-csl-list");
 		var csleditor = doc.getElementById("zotero-csl-editor");
@@ -209,11 +163,9 @@ function domListener (event) {
 			}
 		}
 		attachStyleEngine();
-
 		cslmenu.addEventListener("command", attachStyleEngine, false);
 		refresh.addEventListener("command", attachStyleEngine, false);
 		button.addEventListener("command", attachStyleEngine, false);
-
 	} else if (doc.getElementById("zotero-add-citation-dialog") || doc.getElementById("quick-format-search")) {
 
 		var stringBundle = Cc["@mozilla.org/intl/stringbundle;1"]
@@ -278,6 +230,22 @@ function domListener (event) {
 	event.target.removeEventListener(event.type, arguments.callee);
 }
 
+var startupObserver = {
+	observe: function(subject, topic, data) {
+		initializePlugin();
+	},
+	register: function() {
+		var observerService = Components.classes["@mozilla.org/observer-service;1"]
+			.getService(Components.interfaces.nsIObserverService);
+		observerService.addObserver(this, "final-ui-startup", false);
+	},
+	unregister: function() {
+		var observerService = Components.classes["@mozilla.org/observer-service;1"]
+			.getService(Components.interfaces.nsIObserverService);
+		observerService.removeObserver(this, "final-ui-startup");
+	}
+}
+
 var popupObserver = {
 	observe: function(subject, topic, data) {
 		var target = subject.QueryInterface(Components.interfaces.nsIDOMWindow);
@@ -300,51 +268,14 @@ var popupObserver = {
  */
 
 function startup (data, reason) {
-	dump("XXX startup\n");
-	ifZotero(
-		function (Zotero) {
-			initializePlugin(Zotero);
-			popupObserver.register();
-		},
-		function () {
-			startupObserver.register();
-			popupObserver.register();
-		}
-	)
-	dump("XXX startup done\n");
+	startupObserver.register();
+	popupObserver.register();
 };
 
 function shutdown (data, reason) {
-	dump("XXX shutdown\n");
 	AbbrevsFilter.db.closeDatabase(true);
-/*
-	if (popupObserver.unregister) {
-		popupObserver.unregister();
-	}
-	if (startupObserver.unregister) {
-		startupObserver.unregister();
-	}
-	//AbbrevsFilter.db.closeDatabase();
-	const registrar = Components.manager.QueryInterface(Ci.nsIComponentRegistrar);
-	registrar.unregisterFactory(AbbrevsService.prototype.classID,
-								AbbrevsFilterFactory);
-*/
-	dump("XXX shutdown done\n");
 }
 
-function install (data, reason) {
-}
+function install (data, reason) {}
 
-function uninstall (data, reason) {
-	dump("XXX uninstall\n");
-	try {
-		popupObserver.unregister();
-	} catch (e) {}
-	try {
-		startupObserver.unregister();
-	} catch (e) {}
-	const registrar = Components.manager.QueryInterface(Ci.nsIComponentRegistrar);
-	registrar.unregisterFactory(AbbrevsService.prototype.classID,
-								AbbrevsFilterFactory);
-	dump("XXX uninstall done\n");
-}
+function uninstall (data, reason) {}
