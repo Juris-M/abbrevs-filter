@@ -23,7 +23,7 @@ AbbrevsFilter.prototype.attachSetCacheEntry = function () {
 }
 
 AbbrevsFilter.prototype.attachPreloadAbbreviations = function () {
-	CSL.preloadAbbreviations = this.setCacheFromCitation.bind(this);
+	CSL.preloadAbbreviations = this.preloadAbbreviations.bind(this);
 }
 
 AbbrevsFilter.prototype.attachGetAbbreviation = function () {
