@@ -67,7 +67,7 @@ try {
 				Zotero.debug("AFZ: [SETUP] upgrading database schema to version " + version);
 				try {
 					// make backup of database first
-					yield this.db.backupDatabase(dbVersion, true);
+					this.db.backupDatabase(dbVersion, true);
 					
 					for (var i=dbVersion,ilen=version+1;i<ilen;i+=1) {
 						// Next version
