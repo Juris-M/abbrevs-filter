@@ -494,7 +494,7 @@ var Abbrevs_Filter_Dialog = new function () {
     }.bind(this));
 
 	var addToSuppressJurisdictions = Zotero.Promise.coroutine(function* (jurisdiction, jurisdictionName) {
-		// XXX Memory and DB
+		// Memory and DB
 		var result = yield confirmJurisdictionValues(jurisdiction,listname);
 		if (result && result.jurisdictionID) {
 			yield addJurisdictionValues(result);
@@ -506,7 +506,7 @@ var Abbrevs_Filter_Dialog = new function () {
 	});
 	
     var removeFromSuppressJurisdictions = Zotero.Promise.coroutine(function* (jurisdiction) {
-        // XXX Memory and DB
+        // Memory and DB
         var result = yield confirmJurisdictionValues(jurisdiction,listname);
         yield removeJurisdictionValues(result);
         delete io.style.opt.suppressedJurisdictions[jurisdiction];
