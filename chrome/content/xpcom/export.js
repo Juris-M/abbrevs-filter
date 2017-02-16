@@ -1,10 +1,8 @@
 // Export an abbreviation list
 AbbrevsFilter.prototype.exportList = function (window, document) {
-	dump("XXX exportList outer listname="+this.listname+"\n");
 	var me = this;
 	Zotero.Promise.spawn(function* () {		
 		var listname = me.listname;
-		dump("XXX exportList inner listname="+listname+"\n");
 		var shortname = listname;
 		var m = listname.match(/.*\/(.*)/);
 		if (m) {
@@ -27,7 +25,7 @@ AbbrevsFilter.prototype.exportList = function (window, document) {
 				+ "LEFT JOIN strings Abbr ON abbreviations.abbrID=Abbr.stringID "
 				+ "WHERE list=?";
 
-			// XXX Why select by category? Why not just grab everything, and
+			// Why select by category? Why not just grab everything, and
 			// assign what drifts through the category filter to JSON?
 
 			var rows = yield me.db.queryAsync(sql, [listname]);
