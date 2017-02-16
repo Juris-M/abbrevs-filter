@@ -49,20 +49,17 @@ AbbrevsFilter.prototype.importList = Zotero.Promise.coroutine(function* (window,
 
     if (json_str) {
         var listObj = JSON.parse(json_str);
-		this.db.executeTransaction(function* () {
+		yield this.db.executeTransaction(function* () {
 			switch (mode) {
 			case 0:
-				dump("XXX case 0\n");
 				var shy = true;
 				break;
 				;;
 			case 1:
-				dump("XXX case 1\n");
 				var shy = false;
 				break
 				;;
 			case 2:
-				dump("XXX case 2\n");
 				var sql = "SELECT listID FROM list WHERE list=?";
 				var listID = yield this.db.valueQueryAsync(sql, [listname]);
 				var sql = "DELETE FROM abbreviations WHERE listID=?";
@@ -72,7 +69,6 @@ AbbrevsFilter.prototype.importList = Zotero.Promise.coroutine(function* (window,
 				break;
 				;;
 			default:
-				dump("XXX case X\n");
 				throw "This can't happen";
 				break;
 				;;
