@@ -1,10 +1,10 @@
 [submodule "resource/abbrevs"]
 	path = resource/abbrevs
-	url = git@github.com:Juris-M/jurism-abbreviations.git
+	url = https://github.com/Juris-M/jurism-abbreviations.git
 
 [submodule "jm-sh"]
 	path = jm-sh
-	url = git@github.com:Juris-M/jm-sh.git
+	url = https://github.com/Juris-M/jm-sh.git
 [submodule "docs"]
 	path = docs
 	url = https://github.com/Juris-M/abbrevs-filter-docs.git
