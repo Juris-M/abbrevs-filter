@@ -10,7 +10,7 @@ IS_BETA="false"
 FORK="abbrevs-filter"
 BRANCH="af5"
 CLIENT="abbrevs-filter"
-VERSION_ROOT="1.1."
+VERSION_ROOT="2.1."
 SIGNED_STUB="juris_m_abbreviation_filter-"
 
 function build-the-plugin () {
