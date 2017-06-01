@@ -165,7 +165,7 @@ AbbrevsFilter.prototype._setCacheEntry = Zotero.Promise.coroutine(function* (lis
 	if (!rawval) return;
 	
 	var sql, abbrev;
-	kc = this.keycache;
+	var kc = this.keycache;
 	
 	// Otherwise, set the cache for the current entry and all of its fallbacks from DB record,
 	// stopping at the first hit.
