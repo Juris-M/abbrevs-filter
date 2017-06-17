@@ -64,7 +64,8 @@ AbbrevsFilter.prototype.importList = Zotero.Promise.coroutine(function* (window,
 				var listID = yield this.db.valueQueryAsync(sql, [listname]);
 				var sql = "DELETE FROM abbreviations WHERE listID=?";
 				yield this.db.queryAsync(sql, [listID]);
-				this.transform[listname] = {};
+				this.transform.abbrevs = {};
+				this.transform.abbrevs["default"] = new this.CSL.AbbreviationSegments();
 				var shy = false;
 				break;
 				;;
@@ -83,8 +84,8 @@ AbbrevsFilter.prototype.importList = Zotero.Promise.coroutine(function* (window,
 				}
 			}
 		}.bind(this));
+		window.close();
 	}
-    window.close();
 
     function normalizeObjects(obj) {
         // Set a list in which to collect objects
