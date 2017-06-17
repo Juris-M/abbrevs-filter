@@ -204,10 +204,10 @@ AbbrevsFilter.prototype._setKeys = Zotero.Promise.coroutine(function* (listname,
 		if (!kc[keys[key]]) {
 			// Look up or create ID
 			sql = `SELECT ${key}ID FROM ${key} WHERE ${key}=?`;
-			let id = yield this.db.valueQueryAsync(sql, [keys[key]]);
+			var id = yield this.db.valueQueryAsync(sql, [keys[key]]);
 			if (!id) {
-				sql = `INSERT INTO ${key} VALUES (NULL, ?)`;
-				yield this.db.queryAsync(sql, [keys[key]]);
+				let insertSql = `INSERT INTO ${key} VALUES (NULL, ?)`;
+				yield this.db.queryAsync(insertSql, [keys[key]]);
 				id = yield this.db.valueQueryAsync(sql, [keys[key]]);
 			}
 			kc[keys[key]] = id;
