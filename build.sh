@@ -13,12 +13,14 @@ CLIENT="abbrevs-filter"
 VERSION_ROOT="2.1."
 SIGNED_STUB="juris_m_abbreviation_filter-"
 
+set +e
 gsed --version > /dev/null 2<&1
 if [ $? -gt 0 ]; then
     GSED="sed"
 else
     GSED="gsed"
 fi
+set -e
 
 
 function build-the-plugin () {
