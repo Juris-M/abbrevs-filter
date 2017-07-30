@@ -126,7 +126,14 @@ function domListener (event) {
 	// To be executed when opening CSL Editor or one of the integration plugins
 	if (doc.getElementById('abbrevs-button')) return;
 
-	if (doc.documentElement.getAttribute('id') === 'csl-edit') {
+	if (doc.getElementById('automaticJournalAbbreviations-checkbox')) {
+		var checkboxElem = doc.getElementById('automaticJournalAbbreviations-checkbox');
+		checkboxElem.setAttribute('label', 'Abbreviation Filter installed (overrides Medline abbrevs)');
+		checkboxElem.disabled = true;
+		var description = checkboxElem.nextSibling
+		description.innerHTML = 'To use the default Medline abbreviations, disable the Abbreviation Filter and restart Zotero.';
+		return;
+	} else if (doc.documentElement.getAttribute('id') === 'csl-edit') {
 
 		Zotero = Cc["@zotero.org/Zotero;1"].getService(Ci.nsISupports).wrappedJSObject;
 		
