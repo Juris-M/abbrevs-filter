@@ -280,8 +280,9 @@ function startup (data, reason) {
 };
 
 function shutdown (data, reason) {
-	popupObserver.unregister();
-	AbbrevsFilter.db.closeDatabase(true);
+	if (AbbrevsFilter.db) {
+		AbbrevsFilter.db.closeDatabase(true);
+	}
 }
 
 function install (data, reason) {}
