@@ -43,7 +43,7 @@ AbbrevsFilter.prototype.attachSetSuppressJurisdictions = function() {
             + "WHERE list=?;";
         var jurisdictionList = yield AbbrevsFilter.db.columnQueryAsync(sql,[styleID]);
         var results;
-        if (jurisdictionList) {
+        if (jurisdictionList && jurisdictionList.length) {
             jurisdictionList = "'" + jurisdictionList.join("','") + "'";
 		    var sql = 'SELECT jurisdictionName as val,jurisdictionID as comment FROM jurisdictions '
 			    + 'WHERE jurisdictionID IN (' + jurisdictionList + ') ORDER BY jurisdictionName;'
