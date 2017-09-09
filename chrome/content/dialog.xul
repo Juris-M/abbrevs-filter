@@ -39,10 +39,10 @@
     <hbox>
       <vbox>
         <textbox id="suppression-autocomplete" 
-                 placeholder="Add a jurisdiction"
+                 placeholder="Choose a country name"
                  type="autocomplete" 
                  autocompletesearch="jurism" 
-                 autocompletesearchparam='{"fieldName":"jurisdictions"}'
+                 autocompletesearchparam='{"fieldName":"countries"}'
                  ontextentered="Abbrevs_Filter_Dialog.handleJurisdictionAutoCompleteSelect(this);"/>
         <hbox flex="1"/>
       </vbox>

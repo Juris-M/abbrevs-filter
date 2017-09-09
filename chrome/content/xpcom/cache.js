@@ -163,12 +163,12 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
 
 AbbrevsFilter.prototype._setCacheEntry = Zotero.Promise.coroutine(function* (listname, obj, jurisdiction, category, rawval) {
 	if (!rawval) return;
-	
 	var sql, abbrev;
 	var kc = this.keycache;
 	
 	// Otherwise, set the cache for the current entry and all of its fallbacks from DB record,
 	// stopping at the first hit.
+	rawval = ("" + rawval).toLowerCase();
 	let rawID = yield this._getStringID(rawval);
 	if (rawID) {
 		var jurisd = jurisdiction;
