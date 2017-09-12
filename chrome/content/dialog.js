@@ -2,6 +2,8 @@ AbbrevsFilter = Components.classes['@juris-m.github.io/abbrevs-filter;1'].getSer
 
 var Abbrevs_Filter_Dialog = new function () {
 
+    this.importChooseSourceFile = importChooseSourceFile;
+
     // Strings and things.
     var stringBundle = Components.classes["@mozilla.org/intl/stringbundle;1"]
         .getService(Components.interfaces.nsIStringBundleService)

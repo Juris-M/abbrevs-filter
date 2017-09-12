@@ -79,7 +79,7 @@
           <menuitem value="" label="Select a resource"/>
         </menupopup>
       </menulist>
-      <textbox flex="1" placeholder="Click to select a file" id="file-for-import" type="text" onclick="Abbrevs_Filter_Dialog.importChooseSourceFile);" hidden="true"/>
+      <textbox flex="1" placeholder="Click to select a file" id="file-for-import" type="text" onclick="Abbrevs_Filter_Dialog.importChooseSourceFile();" hidden="true"/>
     </hbox>
     <hbox>
       <radiogroup orient="horizontal" id="abbrevs-filter-import-options">
