@@ -1,4 +1,4 @@
-AbbrevsFilter = Components.classes['@juris-m.github.io/abbrevs-filter;1'].getService(Components.interfaces.nsISupports).wrappedJSObject;
+var AbbrevsFilter = Components.classes['@juris-m.github.io/abbrevs-filter;1'].getService(Components.interfaces.nsISupports).wrappedJSObject;
 
 var Abbrevs_Filter_Dialog = new function () {
 
@@ -463,7 +463,7 @@ var Abbrevs_Filter_Dialog = new function () {
 		fp.appendFilter("JSON data", "*.json");
 		var rv = fp.show();
 		if (rv == nsIFilePicker.returnOK || rv == nsIFilePicker.returnReplace) {
-			this.fileForImport = fp.file;
+			AbbrevsFilter.fileForImport = fp.file;
 			var elem = document.getElementById("file-for-import");
 			elem.setAttribute('value',fp.file.path);
 		}
