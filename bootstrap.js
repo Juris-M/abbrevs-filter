@@ -198,12 +198,23 @@ function domListener (event) {
 			}
 		}
 
+		function abbrevsPopup() {
+			doc.defaultView.openDialog('chrome://abbrevs-filter/content/dialog.xul', 
+									   'AbbrevsFilterDialog', 
+									   'chrome,centerscreen,alwaysRaised,modal',
+									   io);
+		}
+		
 		function makeButtonBox() {
 			var bx = doc.createElement("hbox");
 			var button = doc.createElement("button");
 			button.setAttribute("type", "button");
-			button.setAttribute("label", stringBundle.GetStringFromName('dialogLabel'));
+			button.setAttribute("label", "Abbrevs.");
+			//button.setAttribute("image", "chrome://zotero/skin/abbrevs-button.png");
+			button.setAttribute("margin", "0 0 0 0");
+			button.setAttribute("padding", "0 0 0 0");
 			button.setAttribute("id", "abbrevs-button");
+			button.addEventListener("command", abbrevsPopup);
 			if (!processorIsLoaded()) {
 				button.setAttribute("disabled", "true");
 			}
@@ -211,28 +222,20 @@ function domListener (event) {
 			return bx;
 		}
 
-		function attachButton(bx) {
+		function attachButton() {
 			var dialog = doc.getElementById("zotero-add-citation-dialog");
 			if (dialog) {
 				var vbox = doc.getElementById("zotero-select-items-container");
+				var bx = makeButtonBox();
 				dialog.insertBefore(bx, vbox);
 			} else {
-				bx.firstChild.setAttribute("style","padding: 0 6px 0 6px;margin: -1px 2px 0 2px;display: inline-block;line-height: normal;");
-				searchBox = doc.getElementById("quick-format-search");
-				searchBox.insertBefore(bx, null);
+				var spinner = doc.getElementById("quick-format-spinner");
+				var bx = makeButtonBox();
+				bx.setAttribute("style", "margin-top: -3px;height: 18px;");
+				spinner.parentNode.insertBefore(bx, null);
 			}
-			return bx.firstChild;
 		}
-
-		var buttonbox = makeButtonBox();
-		var button = attachButton(buttonbox);
-
-		button.addEventListener("command", function() {
-			doc.defaultView.openDialog('chrome://abbrevs-filter/content/dialog.xul', 
-									   'AbbrevsFilterDialog', 
-									   'chrome,centerscreen,alwaysRaised,modal',
-									   io);
-		});
+		attachButton();
 	}
 	event.target.removeEventListener(event.type, arguments.callee);
 }
