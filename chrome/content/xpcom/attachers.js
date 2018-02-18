@@ -18,10 +18,6 @@ AbbrevsFilter.prototype.attachSetCachedAbbrevList = function () {
 	CSL.setCachedAbbrevList = this.setCachedAbbrevList.bind(this);
 }
 
-AbbrevsFilter.prototype.attachSetCacheEntry = function () {
-	CSL.setCacheEntry = this.setCacheEntry.bind(this);
-}
-
 AbbrevsFilter.prototype.attachPreloadAbbreviations = function () {
 	CSL.preloadAbbreviations = this.preloadAbbreviations.bind(this);
 }
