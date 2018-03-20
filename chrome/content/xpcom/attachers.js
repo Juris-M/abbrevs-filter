@@ -27,7 +27,12 @@ AbbrevsFilter.prototype.attachGetAbbreviation = function () {
 }
 
 AbbrevsFilter.prototype.attachSetSuppressJurisdictions = function() {
-
+	
+	// XXXXX OK for now, but this does not need to be an attacher.
+	// XXXXX Juris-M can invoke it directly out of the Abbrevs Filter
+	// XXXXX on the processor instance. Processor will then use the
+	// XXXXX data that has been set, synchronously.
+	
     var AbbrevsFilter = this;
     var Zotero = this.Zotero;
     var CSL = Zotero.CiteProc.CSL;

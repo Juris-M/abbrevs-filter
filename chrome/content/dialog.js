@@ -479,6 +479,10 @@ var Abbrevs_Filter_Dialog = new function () {
     var setJurisdictionNode = Zotero.Promise.coroutine(function* (comment,value) {
         var suppressionList = document.getElementById("suppression-list");
         var jurisdictionNode = document.createElement('label');
+		//
+		// XXXXX For future cleanup. We only suppress countries now (a single element)
+		// XXXXX so these operations on the : divider are unnecessary.
+		//
         jurisdictionNode.setAttribute('id','sj-' + comment.replace(':','-','g'));
         jurisdictionNode.setAttribute('value',value);
         jurisdictionNode.setAttribute('style','border:1px solid black;border-radius:6px;white-space:nowrap;background:white;padding: 0 6px 0 6px;cursor:pointer;');
