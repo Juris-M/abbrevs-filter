@@ -38,7 +38,6 @@ var Abbrevs_Filter_Dialog = new function () {
         prefs.setCharPref("currentCategory", "container-title");
     }
 
-    // Huh?
     var openFieldParent = null;
 
     function init () {
@@ -226,7 +225,7 @@ var Abbrevs_Filter_Dialog = new function () {
         rawlabel.setAttribute("value", jurisdictionName);
         rawlabel.setAttribute("crop", "end");
 		if (jurisdictionName === "default") {
-			rawlabel.setAttribute("style", "font-weight:bold;");
+			rawlabel.setAttribute("style", "font-weight:bold;visibility:hidden;");
 		} else {
 			rawlabel.setAttribute("style", "font-size:smaller;");
 		}
@@ -246,6 +245,10 @@ var Abbrevs_Filter_Dialog = new function () {
             var displayTitle = entryItem.getDisplayTitle(true);
             rawbox.setAttribute("system_id", key);
             rawbox.setAttribute("value", displayTitle);
+        } else if ("place" === category && key === key.toUpperCase()) {
+            var humanForm = style.sys.getHumanForm(key.toLowerCase(), false, true);
+            rawbox.setAttribute("system_id", key);
+            rawbox.setAttribute("value", humanForm);
         } else {
             rawbox.setAttribute("value", key);
         }
@@ -289,7 +292,7 @@ var Abbrevs_Filter_Dialog = new function () {
         var row = event.currentTarget;
 
         var data = readDataFromClosedRow(row);
-		
+        
 
 /*
         // Remap if in hereinafter, setting system_id
@@ -383,7 +386,7 @@ var Abbrevs_Filter_Dialog = new function () {
 			row.removeChild(data.abbrevNode);
 			
 			// Now rawval shifts to become the system_id
-			if ("hereinafter" === data.categoryVal) {
+			if (data.rawNode.getAttribute("system_id")) {
 				data.rawVal = data.rawNode.getAttribute("system_id");
 			}
 			
@@ -528,21 +531,25 @@ var Abbrevs_Filter_Dialog = new function () {
     var removeJurisdictionValues = Zotero.Promise.coroutine(function* (result) {
 		yield AFZ.db.executeTransaction(function* () {
 			var sql = "SELECT COUNT(*) FROM suppressme WHERE listID=? AND jurisdictionID=?";
-			if (yield AFZ.db.valueQueryAsync(sql,[result.listID,result.jurisdictionID])) {
+			var params = [
+				result.listID,
+				result.jurisdictionID
+			]
+			if (yield AFZ.db.valueQueryAsync(sql, params)) {
 				var sql = "DELETE FROM suppressme WHERE listID=? AND jurisdictionID=?";
-				yield AFZ.db.queryAsync(sql,[result.listID,result.jurisdictionID]);
+				yield AFZ.db.queryAsync(sql, params);
 			}
 		});
     });
 	
-    var confirmJurisdictionValues = Zotero.Promise.coroutine(function* (jurisdiction,styleID) {
+    var confirmJurisdictionValues = Zotero.Promise.coroutine(function* (jurisdiction, styleID) {
         var ret = {};
-        var check = yield checkDB('jurisdiction',jurisdiction);
+        var check = yield checkDB('jurisdiction', jurisdiction);
         if (!check) {
             yield addDB('jurisdiction', jurisdiction);
         };
         ret.jurisdictionID = yield getDB('jurisdiction', jurisdiction);
-        check = yield checkDB('list',styleID);
+        check = yield checkDB('list', styleID);
         if (!check) {
             yield addDB('list', styleID);
         }

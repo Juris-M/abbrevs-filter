@@ -57,6 +57,7 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
 			    "archive-place",
 			    "publisher-place",
 			    "event-place",
+			    "country",
 			    "jurisdiction",
 			    "language-name",
 			    "language-name-original"
@@ -91,7 +92,7 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
     }
 
 	var _registerEntries = Zotero.Promise.coroutine(function* (val, jurisdictions, category) {
-		val = CSL.getJurisdictionNameAndSuppress(styleEngine, val);
+		//val = CSL.getJurisdictionNameAndSuppress(styleEngine, val);
 		for (let i=jurisdictions.length;i>0;i--) {
 			let jurisdiction = jurisdictions.slice(0,i).join(":");
 			yield this._setCacheEntry(listname, obj, jurisdiction, category, val);
@@ -114,14 +115,20 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
 			var rawvals = false;
 			if (category) {
 				rawvals = rawFieldFunction[category](item, field).map(function(val){
-					return [val, category];
+					return [val, category, field];
 				});
+				if ("jurisdiction" === field) {
+					rawvals = rawvals.concat(rawFieldFunction[category](item, field).map(function(val){
+						val = val.split(":")[0];
+						return [val, category, "country"];
+					}));
+				}
 			} else if (CSL.CREATORS.indexOf(field) > -1) {
 				rawvals = rawFieldFunction["institution-entire"](item, field).map(function(val){
-					return [val, "institution-entire"];
+					return [val, "institution-entire", field];
 				});
 				rawvals = rawvals.concat(rawFieldFunction["institution-part"](item, field).map(function(val){
-					return [val, "institution-part"];
+					return [val, "institution-part", field];
 				}));
 			} else if (field === "authority") {
 				if ("string" === typeof item[field]) {
@@ -130,20 +137,23 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
 					var spoofItem = item;
 				}
 				rawvals = rawFieldFunction["institution-entire"](spoofItem, field).map(function(val){
-					return [val, "institution-entire"];
+					return [val, "institution-entire", field];
 				});
 				rawvals = rawvals.concat(rawFieldFunction["institution-part"](spoofItem, field).map(function(val){
-					return [val, "institution-part"];
+					return [val, "institution-part", field];
 				}));
 			}
 			if (!rawvals) continue;
 			for (var j=0,jlen=rawvals.length;j<jlen;j++) {
 				var val = rawvals[j][0];
 				var category = rawvals[j][1];
+				var passed_field = rawvals[j][2];
+				val = styleEngine.sys.normalizeAbbrevsKey(passed_field, val);
 				yield _registerEntries(val, jurisdictions, category);
 				if (item.multi && item.multi._keys.jurisdiction) {
 					for (var key of Object.keys(item.multi._keys.jurisdiction)) {
 						val = item.multi._keys[key];
+						val = styleEngine.sys.normalizeAbbrevsKey(passed_field, val);
 						yield _registerEntries(val, jurisdictions, category);
 					}
 				}
@@ -154,7 +164,8 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
 		for (let key in rawItemFunction) {
 			rawvals = rawItemFunction[key](item);
 			for (let i=0,ilen=rawvals.length;i<ilen;i++) {
-				yield _registerEntries(rawvals[i], jurisdictions, key);
+				var val = rawvals[i];
+				yield _registerEntries(val, jurisdictions, key);
 			}
 		}
 		yield this.Zotero.CachedJurisdictionData.load(item);
@@ -168,7 +179,7 @@ AbbrevsFilter.prototype._setCacheEntry = Zotero.Promise.coroutine(function* (lis
 	
 	// Otherwise, set the cache for the current entry and all of its fallbacks from DB record,
 	// stopping at the first hit.
-	rawval = ("" + rawval).toLowerCase();
+	rawval = "" + rawval;
 	let rawID = yield this._getStringID(rawval);
 	if (rawID) {
 		var jurisd = jurisdiction;

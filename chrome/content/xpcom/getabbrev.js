@@ -4,8 +4,6 @@ this.citeproc = CSL;
 
 // Install a custom abbreviations handler on the processor.
 AbbrevsFilter.prototype.getAbbreviation = function (listname, obj, jurisdiction, category, key, itemType) {
-	// Actually, no. We need to split jurisdiction, and iterate down to the first hit, if any.
-	key = ("" + key).toLowerCase();
 	var ret = false;
 	var jurisdictions = jurisdiction.split(":");
 	for (var i=jurisdictions.length;i>0;i--) {

@@ -1,5 +1,4 @@
 AbbrevsFilter.prototype.saveEntry = Zotero.Promise.coroutine(function* (listname, jurisdiction, category, rawval, abbrevval, shy) {
-	var rawval = rawval.toLowerCase();
 	let kc = this.keycache;
 	yield this._setKeys(listname, jurisdiction, category);
 	let rawID = yield this._getStringID(rawval, true);
