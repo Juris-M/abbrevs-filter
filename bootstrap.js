@@ -190,7 +190,7 @@ function domListener (event) {
 		}
 		io.wrappedJSObject = io;
 
-		function processorIsLoaded() { 
+		function processorIsLoaded() {
 			if (io.wrappedJSObject.style.registry.citationreg.citationByIndex.length) {
 				return true;
 			} else {
@@ -215,9 +215,7 @@ function domListener (event) {
 			button.setAttribute("padding", "0 0 0 0");
 			button.setAttribute("id", "abbrevs-button");
 			button.addEventListener("command", abbrevsPopup);
-			if (!processorIsLoaded()) {
-				button.setAttribute("disabled", "true");
-			}
+			button.setAttribute("disabled", "true");
 			bx.appendChild(button);
 			return bx;
 		}
@@ -233,6 +231,10 @@ function domListener (event) {
 				var bx = makeButtonBox();
 				bx.setAttribute("style", "margin-top: -3px;height: 18px;");
 				spinner.parentNode.insertBefore(bx, null);
+			}
+			if (processorIsLoaded()) {
+				var button = doc.getElementById("abbrevs-button");
+				button.removeAttribute("disabled");
 			}
 		}
 		attachButton();
