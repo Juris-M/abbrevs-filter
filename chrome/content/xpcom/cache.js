@@ -109,6 +109,15 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
 		} else {
 			var jurisdictions = [];
 		}
+		if (item.language) {
+			var lst = item.language.toLowerCase().split("<");
+			if (lst.length > 0) {
+				item["language-name"] = lst[0];
+			}
+			if (lst.length === 2) {
+				item["language-name-original"] = lst[1];
+			}
+		}
 		// fields
 		for (let field of Object.keys(item)) {
 			category = CSL.FIELD_CATEGORY_REMAP[field];
