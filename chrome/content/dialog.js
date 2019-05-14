@@ -109,11 +109,26 @@ var Abbrevs_Filter_Dialog = new function () {
         try {
             var abbreviationsContainer = emptyAbbreviationsList();
             var keys = getAbbreviationKeys(category);
+            // If category is institution-part or institution-entire,
+            // set topJurisdiction on each item for use in decoding.
+            if (["institution-part", "institution-entire"].indexOf(category) > -1) {
+                var topCode = null;
+                var lastKey = null;
+                for (var i=keys.length-1; i>-1; i--) {
+                    if (lastKey !== keys[i][1]) {
+                        topCode = keys[i][0];
+                    }
+                    if (keys[i].length === 2) {
+                        keys[i].push(topCode);
+                    }
+                    lastKey = keys[i][1];
+                }
+            }
             for (var i = 0, ilen = keys.length; i < ilen; i += 1) {
                 var jurisdictionCode = keys[i][0];
                 var key = keys[i][1];
-
-                var row = writeDataToClosedRow(listname, jurisdictionCode, category, key);
+                var topJurisdiction = keys[i][2];
+                var row = writeDataToClosedRow(listname, jurisdictionCode, category, key, topJurisdiction);
                 abbreviationsContainer.appendChild(row);
                 row.addEventListener('click', openRow, false);
             }
@@ -209,7 +224,7 @@ var Abbrevs_Filter_Dialog = new function () {
         }
     }
 
-    function writeDataToClosedRow(listname, jurisdictionCode, category, key) {
+    function writeDataToClosedRow(listname, jurisdictionCode, category, key, topJurisdiction) {
         // Node order is: listname, jurisdiction, category, raw, abbrev
 
         // Row
@@ -249,6 +264,12 @@ var Abbrevs_Filter_Dialog = new function () {
             var humanForm = style.sys.getHumanForm(key.toLowerCase(), false, true);
             rawbox.setAttribute("system_id", key);
             rawbox.setAttribute("value", humanForm);
+        } else if ("institution-entire" === category) {
+            rawbox.setAttribute("value", style.sys.getHumanForm(topJurisdiction, key, true));
+            rawbox.setAttribute("system_id", key);
+        } else if ("institution-part" === category) {
+            rawbox.setAttribute("value", style.sys.getHumanForm(topJurisdiction, key, true));
+            rawbox.setAttribute("system_id", key);
         } else {
             rawbox.setAttribute("value", key);
         }

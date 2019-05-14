@@ -91,13 +91,28 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
         }
     }
 
-	var _registerEntries = Zotero.Promise.coroutine(function* (val, jurisdictions, category) {
-		//val = CSL.getJurisdictionNameAndSuppress(styleEngine, val);
+	var _registerEntries = Zotero.Promise.coroutine(function* (val, jurisdictions, category, passed_field) {
+		if (passed_field) {
+			var topCode = jurisdictions.join(":");
+			var humanVal = null;
+			if ("authority" === passed_field) {
+				humanVal = styleEngine.sys.getHumanForm(topCode, val);
+				// If humanVal found, assume val is a code. Normalize humanVal, leave
+				// val unscathed. Otherwise, normalize val.
+				if (humanVal) {
+					humanVal = styleEngine.sys.normalizeAbbrevsKey(passed_field, humanVal);
+				} else {
+					val = styleEngine.sys.normalizeAbbrevsKey(passed_field, val);
+				}
+			} else {
+				val = styleEngine.sys.normalizeAbbrevsKey(passed_field, val);
+			}
+		}
 		for (let i=jurisdictions.length;i>0;i--) {
 			let jurisdiction = jurisdictions.slice(0,i).join(":");
-			yield this._setCacheEntry(listname, obj, jurisdiction, category, val);
+			yield this._setCacheEntry(listname, obj, jurisdiction, category, val, humanVal);
 		}
-		yield this._setCacheEntry(listname, obj, "default", category, val);
+		yield this._setCacheEntry(listname, obj, "default", category, val, humanVal);
 	}.bind(this));
 
 	// process
@@ -122,6 +137,7 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
 		for (let field of Object.keys(item)) {
 			category = CSL.FIELD_CATEGORY_REMAP[field];
 			var rawvals = false;
+			var hackedvals = false;
 			if (category) {
 				rawvals = rawFieldFunction[category](item, field).map(function(val){
 					return [val, category, field];
@@ -141,7 +157,8 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
 				}));
 			} else if (field === "authority") {
 				if ("string" === typeof item[field]) {
-					var spoofItem = {authority:[{literal:styleEngine.sys.getHumanForm(item.jurisdiction, item[field])}]};
+					//var spoofItem = {authority:[{literal:styleEngine.sys.getHumanForm(item.jurisdiction, item[field])}]};
+					var spoofItem = {authority:[{literal:item[field]}]};
 				} else {
 					var spoofItem = item;
 				}
@@ -157,13 +174,19 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
 				var val = rawvals[j][0];
 				var category = rawvals[j][1];
 				var passed_field = rawvals[j][2];
-				val = styleEngine.sys.normalizeAbbrevsKey(passed_field, val);
-				yield _registerEntries(val, jurisdictions, category);
+
+				// zzz This would have broken courtID if it contains a period.
+				// val = styleEngine.sys.normalizeAbbrevsKey(passed_field, val);
+
+				yield _registerEntries(val, jurisdictions, category, passed_field);
 				if (item.multi && item.multi._keys.jurisdiction) {
 					for (var key of Object.keys(item.multi._keys.jurisdiction)) {
 						val = item.multi._keys[key];
-						val = styleEngine.sys.normalizeAbbrevsKey(passed_field, val);
-						yield _registerEntries(val, jurisdictions, category);
+
+						// zzz see above
+						// val = styleEngine.sys.normalizeAbbrevsKey(passed_field, val);
+
+						yield _registerEntries(val, jurisdictions, category, passed_field);
 					}
 				}
 			}
@@ -181,7 +204,7 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
 	}
 });
 
-AbbrevsFilter.prototype._setCacheEntry = Zotero.Promise.coroutine(function* (listname, obj, jurisdiction, category, rawval) {
+AbbrevsFilter.prototype._setCacheEntry = Zotero.Promise.coroutine(function* (listname, obj, jurisdiction, category, rawval, humanRawVal) {
 	if (!rawval) return;
 	var sql, abbrev;
 	var kc = this.keycache;
@@ -190,7 +213,37 @@ AbbrevsFilter.prototype._setCacheEntry = Zotero.Promise.coroutine(function* (lis
 	// stopping at the first hit.
 	rawval = "" + rawval;
 	let rawID = yield this._getStringID(rawval);
-	if (rawID) {
+
+	// Screw-up recovery here.
+
+	// Code originally used human-readable transform of rawval for
+	// institution names.  This worked more or less, but when
+	// processing a courtID, the post-processed key was used for DB
+	// save, retrieval, and mapping -- which defeated the purpose of
+	// using a machine-readable key in the first place.
+
+	// Som Many mappings in the wild have been set to the human
+	// rawval, but we need to migrate to machine-rawval without
+	// breaking everyone's existing abbreviation choices.
+
+	// Try machine-rawval first. If we find it, just use it.
+
+	// If there is NO machine-rawval, try for a match on the old
+	// human-rawval if one is provided.
+
+	// If human-rawval is used, we read it into memory against the
+	// machine-readable key that we now use for mappings. The result
+	// of the remapping will be that the human-rawval abbrev becomes a
+	// persistent read-only fallback value standing behind any abbrev
+	// set directly on the machine-readable key. That's a small price
+	// to pay for what could have been substantial data loss in user
+	// abbrev listings.
+
+	var humanRawID = false;
+	if (humanRawVal) {
+		humanRawID = yield this._getStringID(humanRawVal);
+	}
+	if (rawID || humanRawID) {
 		var jurisd = jurisdiction;
 		yield this.db.executeTransaction(function* () {
 			yield this._setKeys(listname, jurisd, category);
@@ -201,10 +254,20 @@ AbbrevsFilter.prototype._setCacheEntry = Zotero.Promise.coroutine(function* (lis
 		if (!obj[jurisd][category]) {
 			obj[jurisd][category] = {};
 		}
-		sql = "SELECT S.string AS abbrev FROM abbreviations A JOIN strings S ON A.abbrID=S.stringID WHERE listID=? AND jurisdictionID=? AND categoryID=? AND rawID=?";
-		abbrev = yield this.db.valueQueryAsync(sql, [kc[listname], kc[jurisd], kc[category], rawID]);
-		if (abbrev) {
-			obj[jurisd][category][rawval] = abbrev;
+	}
+	var ids = [rawID];
+	if (humanRawID) {
+		ids.push(humanRawID);
+	}
+	for (var i=0,ilen=ids.length; i<ilen; i++) {
+		var id = ids[i];
+		if (id) {
+			sql = "SELECT S.string AS abbrev FROM abbreviations A JOIN strings S ON A.abbrID=S.stringID WHERE listID=? AND jurisdictionID=? AND categoryID=? AND rawID=?";
+			abbrev = yield this.db.valueQueryAsync(sql, [kc[listname], kc[jurisd], kc[category], id]);
+			if (abbrev) {
+				obj[jurisd][category][rawval] = abbrev;
+				break;
+			}
 		}
 	}
 });
