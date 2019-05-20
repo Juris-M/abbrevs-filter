@@ -5,7 +5,7 @@ AbbrevsFilter.prototype.initComponent = Zotero.Promise.coroutine(function* (Zote
 		yield Zotero.DataDirectory.init();
 		this.Zotero = Zotero;
 		this.CSL = Zotero.CiteProc.CSL;
-		this.sys = new Zotero.Cite.System;
+		this.sys = new Zotero.Cite.System({ automaticJournalAbbreviations: false, uppercaseSubtitles: false });
 		this.db = new Zotero.DBConnection("abbrevs-filter");
 	} catch (e) {
 		dump("[AFZ] initComponent OOPS: " + e);
