@@ -2,10 +2,6 @@
 	path = resource/abbrevs
 	url = https://github.com/Juris-M/jurism-abbreviations.git
 	branch=af5
-
-[submodule "jm-sh"]
-	path = jm-sh
-	url = https://github.com/Juris-M/jm-sh.git
 [submodule "docs"]
 	path = docs
 	url = https://github.com/Juris-M/abbrevs-filter-docs.git
