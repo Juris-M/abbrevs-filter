@@ -61,7 +61,7 @@ AbbrevsFilter.prototype.attachSetSuppressJurisdictions = function() {
 
 
 
-AbbrevsFilter.prototype.attachInstallAbbrevsForJurisdiction = Zotero.Promise.coroutine(function* () {
+AbbrevsFilter.prototype.setInstallAbbrevsForJurisdiction = Zotero.Promise.coroutine(function* () {
 	// Check for existence of abbrevsInstalled table, create if not
 	// present
 	var sql = "CREATE TABLE IF NOT EXISTS abbrevsInstalled ("
@@ -95,12 +95,10 @@ AbbrevsFilter.prototype.attachInstallAbbrevsForJurisdiction = Zotero.Promise.cor
 			}
 		}
 	}
-	var me = this;
-	CSL.installAbbrevsForJurisdiction = Zotero.Promise.coroutine(function* (styleID, jurisdiction) {
+	this.installAbbrevsForJurisdiction = Zotero.Promise.coroutine(function* (styleID, jurisdiction) {
 		if (!jurisdiction) {
 			return;
 		}
-		jurisdiction = jurisdiction.split(":")[0];
 		// If the jurisdiction has a key in jurisdictionInstall map, then
 		// for each list associated with the jurisdiction:
 		// * Check its version against any record in the memory object;
@@ -111,7 +109,7 @@ AbbrevsFilter.prototype.attachInstallAbbrevsForJurisdiction = Zotero.Promise.cor
 				if (!abbrevsInstalled[reqInfo.filename] || reqInfo.version != abbrevsInstalled[reqInfo.filename]) {
 					// * If there is no match, install the list aggressively; and
 					// * Memo the installed version in the memory object and the table.
-					yield me.importList(null, {
+					yield this.importList(null, {
 						fileForImport: false,
 						resourceListMenuValue: reqInfo.filename,
 						mode: 1,
