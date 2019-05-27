@@ -1,24 +1,21 @@
-AbbrevsFilter.prototype.importList = function (window, document) {
+AbbrevsFilter.prototype.importList = function (window, params, styleID) {
+	/*
+	  params = {
+	    fileForImport: fp.file || false,
+	    resourceListMenuValue: str (filename of list) || false,
+	    mode: 0, 1, or 2
+	  }
+	*/
 	var me = this;
 	Zotero.Promise.spawn(function* () {
 		var sql, sqlinsert;
 		var Zotero = me.Zotero;
 		var CSL = me.CSL;
-		var listname = me.listname;
-
-		var mode = document.getElementById("abbrevs-filter-import-options").selectedIndex;
-
-		// Check to see which node is exposed to view
-		var fileForImport = document.getElementById('file-for-import');
-		var resourceListMenu = document.getElementById('resource-list-menu');
-		var resourceListPopup = document.getElementById('resource-list-popup');
-		var resourceListMenuValue = resourceListMenu.value;
-
 		var json_str = "";
 
-		if (!fileForImport.hidden && me.fileForImport) {
-			var file = me.fileForImport;
-			me.fileForImport = false;
+		if (params.fileForImport) {
+			var file = params.fileForImport;
+			params.fileForImport = false;
 			// work with returned nsILocalFile...
 			// |file| is nsIFile
 			var fstream = Components.classes["@mozilla.org/network/file-input-stream;1"]
@@ -34,8 +31,8 @@ AbbrevsFilter.prototype.importList = function (window, document) {
 				json_str += str.value;
 			} while (read != 0);
 			cstream.close(); // me closes fstream
-		} else if (!resourceListMenu.hidden && resourceListMenuValue) {
-			json_str = Zotero.File.getContentsFromURL('resource://abbrevs-filter/abbrevs/' + resourceListMenuValue);
+		} else if (params.resourceListMenuValue) {
+			json_str = Zotero.File.getContentsFromURL('resource://abbrevs-filter/abbrevs/' + params.resourceListMenuValue);
 		}
 
 		var importOneList = Zotero.Promise.coroutine(function* (obj, shy) {
@@ -43,7 +40,7 @@ AbbrevsFilter.prototype.importList = function (window, document) {
 				for (var category of Object.keys(obj[jurisdiction])) {
 					for (var key of Object.keys(obj[jurisdiction][category])) {
 						var val = obj[jurisdiction][category][key];
-						yield me.saveEntry(listname, jurisdiction, category, key, val, shy);
+						yield me.saveEntry(styleID, jurisdiction, category, key, val, shy);
 					}
 				}
 			}
@@ -52,7 +49,7 @@ AbbrevsFilter.prototype.importList = function (window, document) {
 		if (json_str) {
 			var listObj = JSON.parse(json_str);
 			yield me.db.executeTransaction(function* () {
-				switch (mode) {
+				switch (params.mode) {
 				case 0:
 					var shy = true;
 					break;
@@ -63,7 +60,7 @@ AbbrevsFilter.prototype.importList = function (window, document) {
 					;;
 				case 2:
 					var sql = "SELECT listID FROM list WHERE list=?";
-					var listID = yield me.db.valueQueryAsync(sql, [listname]);
+					var listID = yield me.db.valueQueryAsync(sql, [styleID]);
 					var sql = "DELETE FROM abbreviations WHERE listID=?";
 					yield me.db.queryAsync(sql, [listID]);
 					me.transform.abbrevs = {};
@@ -86,7 +83,9 @@ AbbrevsFilter.prototype.importList = function (window, document) {
 					}
 				}
 			}.bind(me));
-			window.close();
+			if (window) {
+				window.close();
+			}
 		}
 
 		function normalizeObjects(obj) {

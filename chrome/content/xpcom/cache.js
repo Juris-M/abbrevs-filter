@@ -3,7 +3,7 @@
 // This needs to Do The Right Thing for jurisdiction and court.
 
 AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function* (styleEngine, citation) {
-	var listname = styleEngine.opt.styleID;
+	var styleID = styleEngine.opt.styleID;
 	var obj = styleEngine.transform.abbrevs;
 	var suppressedJurisdictions = styleEngine.opt.suppressedJurisdictions;
 	var CSL = this.CSL;
@@ -110,9 +110,9 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
 		}
 		for (let i=jurisdictions.length;i>0;i--) {
 			let jurisdiction = jurisdictions.slice(0,i).join(":");
-			yield this._setCacheEntry(listname, obj, jurisdiction, category, val, humanVal);
+			yield this._setCacheEntry(styleID, obj, jurisdiction, category, val, humanVal);
 		}
-		yield this._setCacheEntry(listname, obj, "default", category, val, humanVal);
+		yield this._setCacheEntry(styleID, obj, "default", category, val, humanVal);
 	}.bind(this));
 
 	// process
@@ -204,7 +204,7 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
 	}
 });
 
-AbbrevsFilter.prototype._setCacheEntry = Zotero.Promise.coroutine(function* (listname, obj, jurisdiction, category, rawval, humanRawVal) {
+AbbrevsFilter.prototype._setCacheEntry = Zotero.Promise.coroutine(function* (styleID, obj, jurisdiction, category, rawval, humanRawVal) {
 	if (!rawval) return;
 	var sql, abbrev;
 	var kc = this.keycache;
@@ -246,7 +246,7 @@ AbbrevsFilter.prototype._setCacheEntry = Zotero.Promise.coroutine(function* (lis
 	if (rawID || humanRawID) {
 		var jurisd = jurisdiction;
 		yield this.db.executeTransaction(function* () {
-			yield this._setKeys(listname, jurisd, category);
+			yield this._setKeys(styleID, jurisd, category);
 		}.bind(this));
 		if (!obj[jurisd]) {
 			obj[jurisd] = {};
@@ -263,7 +263,7 @@ AbbrevsFilter.prototype._setCacheEntry = Zotero.Promise.coroutine(function* (lis
 		var id = ids[i];
 		if (id) {
 			sql = "SELECT S.string AS abbrev FROM abbreviations A JOIN strings S ON A.abbrID=S.stringID WHERE listID=? AND jurisdictionID=? AND categoryID=? AND rawID=?";
-			abbrev = yield this.db.valueQueryAsync(sql, [kc[listname], kc[jurisd], kc[category], id]);
+			abbrev = yield this.db.valueQueryAsync(sql, [kc[styleID], kc[jurisd], kc[category], id]);
 			if (abbrev) {
 				obj[jurisd][category][rawval] = abbrev;
 				break;
@@ -272,11 +272,11 @@ AbbrevsFilter.prototype._setCacheEntry = Zotero.Promise.coroutine(function* (lis
 	}
 });
 
-AbbrevsFilter.prototype._setKeys = Zotero.Promise.coroutine(function* (listname, jurisdiction, category) {
+AbbrevsFilter.prototype._setKeys = Zotero.Promise.coroutine(function* (styleID, jurisdiction, category) {
 	var me = this;
 	var sql, res, abbrID, kc = this.keycache;
 	let keys = {
-		list: listname,
+		list: styleID,
 		jurisdiction: jurisdiction,
 		category: category
 	}

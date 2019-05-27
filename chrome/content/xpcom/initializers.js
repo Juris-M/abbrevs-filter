@@ -17,6 +17,7 @@ AbbrevsFilter.prototype.initComponent = Zotero.Promise.coroutine(function* (Zote
 	this.attachSetCachedAbbrevList();
 	yield this.setCachedAbbrevList(Zotero.Prefs.get("export.quickCopy.setting"));
 	this.attachGetCachedAbbrevList();
+	yield this.attachInstallAbbrevsForJurisdiction();
 });
 
 AbbrevsFilter.prototype.initPage = function () {}
@@ -26,7 +27,7 @@ AbbrevsFilter.prototype.initWindow = function (window, document) {
     try {
 	    var io = window.arguments[0].wrappedJSObject;
         this.io = io;
-        var listname = io.style.opt.styleID;
+        var styleID = io.style.opt.styleID;
 	    this.categories = [];
 	    for (var key in io.style.transform.abbrevs) {
 		    this.categories.push(key);

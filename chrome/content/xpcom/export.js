@@ -2,9 +2,9 @@
 AbbrevsFilter.prototype.exportList = function (window, document) {
 	var me = this;
 	Zotero.Promise.spawn(function* () {		
-		var listname = me.listname;
-		var shortname = listname;
-		var m = listname.match(/.*\/(.*)/);
+		var styleID = me.styleID;
+		var shortname = styleID;
+		var m = styleID.match(/.*\/(.*)/);
 		if (m) {
 			shortname = m[1];
 		}
@@ -28,7 +28,7 @@ AbbrevsFilter.prototype.exportList = function (window, document) {
 			// Why select by category? Why not just grab everything, and
 			// assign what drifts through the category filter to JSON?
 
-			var rows = yield me.db.queryAsync(sql, [listname]);
+			var rows = yield me.db.queryAsync(sql, [styleID]);
 			for (var i = 0, ilen = rows.length; i < ilen; i += 1) {
 				var row = rows[i];
 				if (["title", "title-phrase", "container-phrase", "nickname", "hereinafter"].indexOf(row.category) > -1) {

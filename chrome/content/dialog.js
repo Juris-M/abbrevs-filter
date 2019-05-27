@@ -3,6 +3,7 @@ var AbbrevsFilter = Components.classes['@juris-m.github.io/abbrevs-filter;1'].ge
 var Abbrevs_Filter_Dialog = new function () {
 
     this.importChooseSourceFile = importChooseSourceFile;
+	this.import = import;
 
     // Strings and things.
     var stringBundle = Components.classes["@mozilla.org/intl/stringbundle;1"]
@@ -21,13 +22,13 @@ var Abbrevs_Filter_Dialog = new function () {
 
     var style = io.style;
     var transform = io.style.transform;
-    var listname = style.opt.styleID;
+    var styleID = style.opt.styleID;
     var listTitle = style.opt.styleName ? style.opt.styleName : style.opt.styleID;
 
     var AFZ = io.AFZ;
 	AFZ.transform = transform;
     // Used by import, export
-    AFZ.listname = listname;
+    AFZ.styleID = styleID;
     var Zotero = AFZ.Zotero;
     var CSL = Zotero.CiteProc.CSL;
     var saveEntry = AFZ.saveEntry;
@@ -42,7 +43,7 @@ var Abbrevs_Filter_Dialog = new function () {
 
     function init () {
 		Zotero.Promise.spawn(function* () {
-			setTitle(listname, listTitle);
+			setTitle(styleID, listTitle);
 		
 			populateCategoryMenu();
 			setupCurrentCategoryList(category);
@@ -60,9 +61,9 @@ var Abbrevs_Filter_Dialog = new function () {
 		}, this);
 	}
 
-    function setTitle(listname, listTitle) {
+    function setTitle(styleID, listTitle) {
         var listNameNode = document.getElementById("abbrevs-filter-list-name");
-        listNameNode.setAttribute("value", listname);
+        listNameNode.setAttribute("value", styleID);
         var listTitleNode = document.getElementById("abbrevs-filter-list-title");
         listTitleNode.setAttribute("value", listTitle);
     }
@@ -128,7 +129,7 @@ var Abbrevs_Filter_Dialog = new function () {
                 var jurisdictionCode = keys[i][0];
                 var key = keys[i][1];
                 var topJurisdiction = keys[i][2];
-                var row = writeDataToClosedRow(listname, jurisdictionCode, category, key, topJurisdiction);
+                var row = writeDataToClosedRow(styleID, jurisdictionCode, category, key, topJurisdiction);
                 abbreviationsContainer.appendChild(row);
                 row.addEventListener('click', openRow, false);
             }
@@ -224,15 +225,15 @@ var Abbrevs_Filter_Dialog = new function () {
         }
     }
 
-    function writeDataToClosedRow(listname, jurisdictionCode, category, key, topJurisdiction) {
-        // Node order is: listname, jurisdiction, category, raw, abbrev
+    function writeDataToClosedRow(styleID, jurisdictionCode, category, key, topJurisdiction) {
+        // Node order is: styleID, jurisdiction, category, raw, abbrev
 
         // Row
         var row = document.createElement("row");
         row.setAttribute("maxheight", "300;");
 
         // Listname
-        addHiddenNode(row, listname);
+        addHiddenNode(row, styleID);
         
         // Jurisdiction
         var rawlabel = document.createElement("label");
@@ -386,7 +387,7 @@ var Abbrevs_Filter_Dialog = new function () {
 
     function readDataFromOpenRow(row) {
         var data = {};
-        data.listnameVal = row.firstChild.getAttribute("value");
+        data.styleIDVal = row.firstChild.getAttribute("value");
         data.jurisdictionVal = row.firstChild.nextSibling.getAttribute("value");
         data.categoryVal = row.firstChild.nextSibling.nextSibling.getAttribute("value");
         data.rawNode = row.lastChild.previousSibling;
@@ -414,7 +415,7 @@ var Abbrevs_Filter_Dialog = new function () {
 			var jurisdictionCode = yield Zotero.CachedJurisdictionData.setJurisdictionByIdOrName(data.jurisdictionVal);
 			
 			yield AFZ.db.executeTransaction(function* () {
-				yield AFZ.saveEntry(data.listnameVal, jurisdictionCode, data.categoryVal, data.rawVal, data.abbrevVal);
+				yield AFZ.saveEntry(data.styleIDVal, jurisdictionCode, data.categoryVal, data.rawVal, data.abbrevVal);
 			});
 
 			// Reverse remap hereinafter key here
@@ -525,7 +526,7 @@ var Abbrevs_Filter_Dialog = new function () {
 
 	var addToSuppressJurisdictions = Zotero.Promise.coroutine(function* (jurisdiction, jurisdictionName) {
 		// Memory and DB
-		var result = yield confirmJurisdictionValues(jurisdiction,listname);
+		var result = yield confirmJurisdictionValues(jurisdiction,styleID);
 		if (result && result.jurisdictionID) {
 			yield addJurisdictionValues(result);
 			io.style.opt.suppressedJurisdictions[jurisdiction] = jurisdictionName;
@@ -537,7 +538,7 @@ var Abbrevs_Filter_Dialog = new function () {
 	
     var removeFromSuppressJurisdictions = Zotero.Promise.coroutine(function* (jurisdiction) {
         // Memory and DB
-        var result = yield confirmJurisdictionValues(jurisdiction,listname);
+        var result = yield confirmJurisdictionValues(jurisdiction,styleID);
         yield removeJurisdictionValues(result);
         delete io.style.opt.suppressedJurisdictions[jurisdiction];
     });
@@ -630,6 +631,28 @@ var Abbrevs_Filter_Dialog = new function () {
 		return false;
     }
 
-	
+	function import(window, document) {
+		var params = {};
 
+		params.mode = document.getElementById("abbrevs-filter-import-options").selectedIndex;
+
+		var resourceMenuNode = document.getElementById('resource-list-menu');
+		var resourceMenuVal = resourceMenuNode.value;
+		if (!resourceMenuNode.hidden && resourceMenuVal) {
+			params.resourceListMenuValue = resourceMenuVal;
+		} else {
+			params.resourceListMenuValue = false;
+		}
+
+		var fileForImportNode = document.getElementById('file-for-import');
+		if (!fileForImportNode.hidden && AbbrevsFilter.fileForImport) {
+			params.fileForImport = AbbrevsFilter.fileForImport;
+		} else {
+			params.fileForImport = false;
+		}
+
+		params.styleID = AbbrevsFilter.styleID;
+
+		AbbrevsFilter.importList(window, params);
+	}
 }
