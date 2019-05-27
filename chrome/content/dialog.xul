@@ -16,7 +16,7 @@
 	width="800" height="500"
 	minwidth="800" minheight="500"
 	ondialogextra1="AbbrevsFilter.exportList(window, document);"
-	ondialogextra2="Abbrevs_Filter_Dialog.import(window, document);"
+	ondialogextra2="Abbrevs_Filter_Dialog.importFunc(window, document);"
     buttonlabelcancel="Close"
     buttonlabelextra1="&abbrevs-filter.exportButtonLabel;"
     buttonlabelextra2="&abbrevs-filter.importButtonLabel;"
@@ -89,6 +89,7 @@
       </radiogroup>
       <hbox flex="1"/>
     </hbox>
+	<progressmeter hidden="true" mode="determined" id="import-progress"/>
   </vbox>
 
   <script src="dialog.js"/>

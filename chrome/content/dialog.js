@@ -3,7 +3,7 @@ var AbbrevsFilter = Components.classes['@juris-m.github.io/abbrevs-filter;1'].ge
 var Abbrevs_Filter_Dialog = new function () {
 
     this.importChooseSourceFile = importChooseSourceFile;
-	this.import = import;
+	this.importFunc = importFunc;
 
     // Strings and things.
     var stringBundle = Components.classes["@mozilla.org/intl/stringbundle;1"]
@@ -473,6 +473,9 @@ var Abbrevs_Filter_Dialog = new function () {
         var resLst = JSON.parse(Zotero.File.getContentsFromURL('resource://abbrevs-filter/abbrevs/DIRECTORY_LISTING.json'));
         for (var i=0,ilen=resLst.length;i<ilen;i+=1) {
             var info = resLst[i];
+			if (info.jurisdictions) {
+				continue;
+			}
             var elem = document.createElement('menuitem');
             elem.setAttribute('value',info.filename);
             elem.setAttribute('label',info.name);
@@ -631,7 +634,7 @@ var Abbrevs_Filter_Dialog = new function () {
 		return false;
     }
 
-	function import(window, document) {
+	function importFunc(window, document) {
 		var params = {};
 
 		params.mode = document.getElementById("abbrevs-filter-import-options").selectedIndex;
@@ -653,6 +656,6 @@ var Abbrevs_Filter_Dialog = new function () {
 
 		params.styleID = AbbrevsFilter.styleID;
 
-		AbbrevsFilter.importList(window, params);
+		AbbrevsFilter.importList(window, document, params);
 	}
 }

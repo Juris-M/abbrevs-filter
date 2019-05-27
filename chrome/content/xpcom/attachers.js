@@ -71,65 +71,67 @@ AbbrevsFilter.prototype.setInstallAbbrevsForJurisdiction = Zotero.Promise.corout
 		+ "PRIMARY KEY (styleID, importListName)"
 	+ ")"
 	yield this.db.queryAsync(sql);
-	var abbrevsInstalled = {};
+	this.abbrevsInstalled = {};
 
-	var jurisdictionInstallMap = {};
+	this.jurisdictionInstallMap = {};
 	var resLst = JSON.parse(Zotero.File.getContentsFromURL('resource://abbrevs-filter/abbrevs/DIRECTORY_LISTING.json'));
 	for (var i=0,ilen=resLst.length; i< ilen; i++) {
 		var info = resLst[i];
 		if (info.jurisdictions) {
 			for (var j=0,jlen=info.jurisdictions.length; j<jlen; j++) {
 				var jurisdiction = info.jurisdictions[j];
-				if (!jurisdictionInstallMap[jurisdiction]) {
-					jurisdictionInstallMap[jurisdiction] = [];
+				if (!this.jurisdictionInstallMap[jurisdiction]) {
+					this.jurisdictionInstallMap[jurisdiction] = [];
 				}
-				jurisdictionInstallMap[jurisdiction].push({
+				this.jurisdictionInstallMap[jurisdiction].push({
 					filename: info.filename,
 					version: info.version
 				});
 			}
 		}
 	}
-	
-	this.installAbbrevsForJurisdiction = Zotero.Promise.coroutine(function* (styleID, jurisdiction) {
-		if (!jurisdiction) {
-			return;
+});
+
+AbbrevsFilter.prototype.installAbbrevsForJurisdiction = Zotero.Promise.coroutine(function* (styleID, jurisdiction) {
+	if (!jurisdiction) {
+		return;
+	}
+	this.listname = styleID;
+	if (!this.abbrevsInstalled[styleID]) {
+		for (var key in this.abbrevsInstalled) {
+			this.abbrevsInstalled.pop();
 		}
-		if (!abbrevsInstalled[styleID]) {
-			for (var key in abbrevsInstalled) {
-				abbrevsInstalled.pop();
-			}
-			abbrevsInstalled[styleID] = {};
-			// Iterate over the abbrevsInstalled table, and memo installed lists
-			// and their versions in a memory object
-			var sql = "SELECT importListName,version FROM abbrevsInstalled WHERE styleID=?";
-			var rows = yield this.db.queryAsync(sql);
-			for (var i=0,ilen=rows.length; i<ilen; i++) {
-				var row = rows[i];
-				abbrevsInstalled[row[0]] = row[1];
+		this.abbrevsInstalled[styleID] = {};
+		// Iterate over the abbrevsInstalled table, and memo installed lists
+		// and their versions in a memory object
+		var sql = "SELECT importListName,version FROM abbrevsInstalled WHERE styleID=?";
+		var rows = yield this.db.queryAsync(sql, [styleID]);
+		for (var i=0,ilen=rows.length; i<ilen; i++) {
+			var row = rows[i];
+			this.abbrevsInstalled[styleID][row.importListName] = row.version;
+		}
+	}
+	// If the jurisdiction has a key in jurisdictionInstall map, then
+	// for each list associated with the jurisdiction:
+	// * Check its version against any record in the memory object;
+	if (this.jurisdictionInstallMap[jurisdiction] && !this.abbrevsInstalled[styleID][jurisdiction]) {
+		var reqLists = this.jurisdictionInstallMap[jurisdiction]
+		for (var i=0,ilen=reqLists.length; i<ilen; i++) {
+			var reqInfo = reqLists[i];
+			if (!this.abbrevsInstalled[styleID][reqInfo.filename] || reqInfo.version != this.abbrevsInstalled[styleID][reqInfo.filename]) {
+				// * If there is no match, install the list aggressively; and
+				// * Memo the installed version in the memory object and the table.
+				yield this.importList(null, null, {
+					fileForImport: false,
+					resourceListMenuValue: reqInfo.filename,
+					mode: 1,
+					styleID: styleID
+				});
+				var sql = "INSERT OR REPLACE INTO abbrevsInstalled (styleID, importListName, version) VALUES (?, ?, ?)";
+				yield this.db.queryAsync(sql, [styleID, reqInfo.filename, reqInfo.version]);
+				this.abbrevsInstalled[styleID][reqInfo.filename] = reqInfo.version;
 			}
 		}
-		// If the jurisdiction has a key in jurisdictionInstall map, then
-		// for each list associated with the jurisdiction:
-		// * Check its version against any record in the memory object;
-		if (jurisdictionInstallMap[jurisdiction]) {
-			var reqLists = jurisdictionInstallMap[jurisdiction]
-			for (var i=0,ilen=reqLists.length; i<ilen; i++) {
-				var reqInfo = reqLists[i];
-				if (!abbrevsInstalled[reqInfo.filename] || reqInfo.version != abbrevsInstalled[reqInfo.filename]) {
-					// * If there is no match, install the list aggressively; and
-					// * Memo the installed version in the memory object and the table.
-					yield this.importList(null, {
-						fileForImport: false,
-						resourceListMenuValue: reqInfo.filename,
-						mode: 1,
-						styleID: styleID
-					});
-					var sql = "INSERT OR REPLACE INTO abbrevsInstalled (styleID, importListName, version) VALUES (?, ?, ?)";
-					yield this.db.queryAsync(sql, [styleID, reqInfo.filename, reqInfo.version]);
-					abbrevsInstalled[styleID][reqInfo.filename] = reqInfo.version;
-				}
-			}
-		}
-	});
+		this.abbrevsInstalled[styleID][jurisdiction] = true;
+	}
 });

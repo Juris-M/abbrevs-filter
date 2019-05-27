@@ -122,7 +122,7 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
 		if (item.jurisdiction) {
 			var jurisdictions = item.jurisdiction.split(":");
 			// Do it. Right here.
-			this.installAbbrevsForJurisdiction(styleID, jurisdictions[0]);
+			yield this.installAbbrevsForJurisdiction(styleID, jurisdictions[0]);
 		} else {
 			var jurisdictions = [];
 		}
