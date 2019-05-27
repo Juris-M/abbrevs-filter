@@ -65,19 +65,14 @@ AbbrevsFilter.prototype.setInstallAbbrevsForJurisdiction = Zotero.Promise.corout
 	// Check for existence of abbrevsInstalled table, create if not
 	// present
 	var sql = "CREATE TABLE IF NOT EXISTS abbrevsInstalled ("
-		+ "styleName TEXT PRIMARY KEY,"
-		+ "version INT"
+		+ "styleID TEXT,"
+		+ "importListName TEXT,"
+		+ "version INT,"
+		+ "PRIMARY KEY (styleID, importListName)"
 	+ ")"
-	yield AbbrevsFilter.db.queryAsync(sql, ["abbrevsInstalled"]);
-	// Iterate over the abbrevsInstalled table, and memo installed lists
-	// and their versions in a memory object
+	yield this.db.queryAsync(sql);
 	var abbrevsInstalled = {};
-	var sql = "SELECT styleName,version FROM abbrevsInstalled";
-	var rows = yield AbbrevsFilter.db.queryAsync(sql);
-	for (var i=0,ilen=rows.length; i<ilen; i++) {
-		var row = rows[i];
-		abbrevsInstalled[row[0]] = row[1];
-	}
+
 	var jurisdictionInstallMap = {};
 	var resLst = JSON.parse(Zotero.File.getContentsFromURL('resource://abbrevs-filter/abbrevs/DIRECTORY_LISTING.json'));
 	for (var i=0,ilen=resLst.length; i< ilen; i++) {
@@ -95,9 +90,24 @@ AbbrevsFilter.prototype.setInstallAbbrevsForJurisdiction = Zotero.Promise.corout
 			}
 		}
 	}
+	
 	this.installAbbrevsForJurisdiction = Zotero.Promise.coroutine(function* (styleID, jurisdiction) {
 		if (!jurisdiction) {
 			return;
+		}
+		if (!abbrevsInstalled[styleID]) {
+			for (var key in abbrevsInstalled) {
+				abbrevsInstalled.pop();
+			}
+			abbrevsInstalled[styleID] = {};
+			// Iterate over the abbrevsInstalled table, and memo installed lists
+			// and their versions in a memory object
+			var sql = "SELECT importListName,version FROM abbrevsInstalled WHERE styleID=?";
+			var rows = yield this.db.queryAsync(sql);
+			for (var i=0,ilen=rows.length; i<ilen; i++) {
+				var row = rows[i];
+				abbrevsInstalled[row[0]] = row[1];
+			}
 		}
 		// If the jurisdiction has a key in jurisdictionInstall map, then
 		// for each list associated with the jurisdiction:
@@ -115,9 +125,11 @@ AbbrevsFilter.prototype.setInstallAbbrevsForJurisdiction = Zotero.Promise.corout
 						mode: 1,
 						styleID: styleID
 					});
-					abbrevsInstalled[reqInfo.filename] = reqInfo.version;
+					var sql = "INSERT OR REPLACE INTO abbrevsInstalled (styleID, importListName, version) VALUES (?, ?, ?)";
+					yield this.db.queryAsync(sql, [styleID, reqInfo.filename, reqInfo.version]);
+					abbrevsInstalled[styleID][reqInfo.filename] = reqInfo.version;
 				}
 			}
 		}
-	}
+	});
 });
