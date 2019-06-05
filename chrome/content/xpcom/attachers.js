@@ -92,15 +92,16 @@ AbbrevsFilter.prototype.setInstallAbbrevsForJurisdiction = Zotero.Promise.corout
 	}
 });
 
-AbbrevsFilter.prototype.installAbbrevsForJurisdiction = Zotero.Promise.coroutine(function* (styleID, jurisdiction) {
+AbbrevsFilter.prototype.installAbbrevsForJurisdiction = Zotero.Promise.coroutine(function* (styleID, jurisdiction, preferences) {
 	if (!jurisdiction) {
 		return;
 	}
 	this.listname = styleID;
 	if (!this.abbrevsInstalled[styleID]) {
-		for (var key in this.abbrevsInstalled) {
-			this.abbrevsInstalled.pop();
-		}
+		// It's an object, not an array. Besides, if we don't know the style, we should just initialize.
+		//for (var key in this.abbrevsInstalled) {
+		//	this.abbrevsInstalled.pop();
+		//}
 		this.abbrevsInstalled[styleID] = {};
 		// Iterate over the abbrevsInstalled table, and memo installed lists
 		// and their versions in a memory object
