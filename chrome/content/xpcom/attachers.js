@@ -77,15 +77,20 @@ AbbrevsFilter.prototype.setInstallAbbrevsForJurisdiction = Zotero.Promise.corout
 	var resLst = JSON.parse(Zotero.File.getContentsFromURL('resource://abbrevs-filter/abbrevs/DIRECTORY_LISTING.json'));
 	for (var i=0,ilen=resLst.length; i< ilen; i++) {
 		var info = resLst[i];
-		if (info.jurisdictions) {
-			for (var j=0,jlen=info.jurisdictions.length; j<jlen; j++) {
-				var jurisdiction = info.jurisdictions[j];
-				if (!this.jurisdictionInstallMap[jurisdiction]) {
-					this.jurisdictionInstallMap[jurisdiction] = [];
-				}
+		if (info.jurisdiction) {
+			var jurisdiction = info.jurisdiction;
+			if (!this.jurisdictionInstallMap[jurisdiction]) {
+				this.jurisdictionInstallMap[jurisdiction] = [];
+			}
+			this.jurisdictionInstallMap[jurisdiction].push({
+				filename: info.filename,
+				version: info.version
+			});
+			for (var variant in info.variants) {
 				this.jurisdictionInstallMap[jurisdiction].push({
-					filename: info.filename,
-					version: info.version
+					filename: info.filename.replace(/(.*)(\.json)/, "$1-" + variant + "$2"),
+					version: info.variants[variant],
+					pref: variant
 				});
 			}
 		}
@@ -95,6 +100,9 @@ AbbrevsFilter.prototype.setInstallAbbrevsForJurisdiction = Zotero.Promise.corout
 AbbrevsFilter.prototype.installAbbrevsForJurisdiction = Zotero.Promise.coroutine(function* (styleID, jurisdiction, preferences) {
 	if (!jurisdiction) {
 		return;
+	}
+	if (!preferences) {
+		preferences = [];
 	}
 	this.listname = styleID;
 	if (!this.abbrevsInstalled[styleID]) {
@@ -119,18 +127,30 @@ AbbrevsFilter.prototype.installAbbrevsForJurisdiction = Zotero.Promise.coroutine
 		var reqLists = this.jurisdictionInstallMap[jurisdiction]
 		for (var i=0,ilen=reqLists.length; i<ilen; i++) {
 			var reqInfo = reqLists[i];
-			if (!this.abbrevsInstalled[styleID][reqInfo.filename] || reqInfo.version != this.abbrevsInstalled[styleID][reqInfo.filename]) {
-				// * If there is no match, install the list aggressively; and
-				// * Memo the installed version in the memory object and the table.
-				yield this.importList(null, null, {
-					fileForImport: false,
-					resourceListMenuValue: reqInfo.filename,
-					mode: 1,
-					styleID: styleID
-				});
-				var sql = "INSERT OR REPLACE INTO abbrevsInstalled (styleID, importListName, version) VALUES (?, ?, ?)";
-				yield this.db.queryAsync(sql, [styleID, reqInfo.filename, reqInfo.version]);
-				this.abbrevsInstalled[styleID][reqInfo.filename] = reqInfo.version;
+			
+			// Not quite sure how this fits together yet.
+			// For each preference, if it is also found on "variants", append to filename and load, then break.
+			// First one to match wins.
+			// No pref is the fallback.
+			var preferences = [""].concat(preferences);
+			for (var j=0,jlen=preferences.length; j<jlen; j++) {
+				var pref = preferences[j];
+				if (reqInfo.pref && reqInfo.pref !== pref) {
+					continue;
+				}
+				if (!this.abbrevsInstalled[styleID][reqInfo.filename] || reqInfo.version != this.abbrevsInstalled[styleID][reqInfo.filename]) {
+					// * If there is no match, install the list aggressively; and
+					// * Memo the installed version in the memory object and the table.
+					yield this.importList(null, null, {
+						fileForImport: false,
+						resourceListMenuValue: reqInfo.filename,
+						mode: 1,
+						styleID: styleID
+					});
+					var sql = "INSERT OR REPLACE INTO abbrevsInstalled (styleID, importListName, version) VALUES (?, ?, ?)";
+					yield this.db.queryAsync(sql, [styleID, reqInfo.filename, reqInfo.version]);
+					this.abbrevsInstalled[styleID][reqInfo.filename] = reqInfo.version;
+				}
 			}
 		}
 		this.abbrevsInstalled[styleID][jurisdiction] = true;
