@@ -9,6 +9,7 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
 	var CSL = this.CSL;
 	var jurisdiction, category, rawvals;
 	var isMlzStyle = styleEngine.opt.version.slice(0, 4) === '1.1m';
+	var styleModulePreferences = styleEngine.locale[styleEngine.opt.lang].opts["jurisdiction-preference"];
 
 	let rawFieldFunction = {
         "container-title": function (item, varname) {
@@ -122,7 +123,7 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
 		if (item.jurisdiction) {
 			var jurisdictions = item.jurisdiction.split(":");
 			// Do it. Right here.
-			yield this.installAbbrevsForJurisdiction(styleID, jurisdictions[0]);
+			yield this.installAbbrevsForJurisdiction(styleID, jurisdictions[0], styleModulePreferences);
 		} else {
 			var jurisdictions = [];
 		}
