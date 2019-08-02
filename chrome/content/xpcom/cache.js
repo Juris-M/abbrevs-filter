@@ -3,6 +3,8 @@
 // This needs to Do The Right Thing for jurisdiction and court.
 
 AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function* (styleEngine, citation) {
+	if (this._preloadingInProgress) return;
+	this._preloadingInProgress = true;
 	var styleID = styleEngine.opt.styleID;
 	var obj = styleEngine.transform.abbrevs;
 	var suppressedJurisdictions = styleEngine.opt.suppressedJurisdictions;
@@ -205,6 +207,7 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
 		}
 		yield this.Zotero.CachedJurisdictionData.load(item);
 	}
+	this._preloadingInProgress = false;
 });
 
 AbbrevsFilter.prototype._setCacheEntry = Zotero.Promise.coroutine(function* (styleID, obj, jurisdiction, category, rawval, humanRawVal) {

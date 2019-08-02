@@ -83,5 +83,13 @@ CREATE TABLE version (
 	version INTEGER NOT NULL
 );
 
+DROP TABLE IF EXISTS abbrevsInstalled;
+CREATE TABLE abbrevsInstalled (
+    styleID TEXT,
+    importListName TEXT,
+    version INT,
+    PRIMARY KEY (styleID, importListName)
+);
+
 CREATE INDEX title_phrase_primaryID ON titlePhrase(jurisdictionID, primaryID, secondaryLen, secondaryID);
 CREATE INDEX container_phrase_primaryID ON containerPhrase(jurisdictionID, primaryID, secondaryLen, secondaryID);
