@@ -116,9 +116,9 @@ AbbrevsFilter.prototype.installAbbrevsForJurisdiction = Zotero.Promise.coroutine
 		}
 	}
 	// ✓ Check if jurisdiction defs are available
-	// If they are, check for each list+pref in abbrevsInstalled
-	// If a list+pref exists, check its version
-	// If the versions don't match, overwrite
+	// ✓ If they are, check for each list+pref against abbrevsInstalled
+	// ✓ Check if a list+pref exists, check its version
+	// ✓ If it doesn't exist or the versions don't match, overwrite
 	if (this.jurisdictionInstallMap[jurisdiction]) {
 		var installmap = this.jurisdictionInstallMap[jurisdiction];
 		for (var installkey in installmap) {
