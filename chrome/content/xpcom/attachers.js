@@ -109,8 +109,7 @@ AbbrevsFilter.prototype.installAbbrevsForJurisdiction = Zotero.Promise.coroutine
 		var rows = yield this.db.queryAsync(sql, [styleID]);
 		for (var i=0,ilen=rows.length; i<ilen; i++) {
 			var row = rows[i];
-			var country = row.importListName.replace(/^auto-/, "").replace(/\-.*$/, "");
-			country = country.slice(0, country.indexOf("-"));
+			var country = row.importListName.replace(/^auto-/, "").replace(/\-.*$/, "").replace(/\.json/, "");
 			this.abbrevsInstalled[styleID][country] = {};
 			this.abbrevsInstalled[styleID][country][row.importListName] = row.version;
 		}
