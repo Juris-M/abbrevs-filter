@@ -1,7 +1,3 @@
-[submodule "resource/abbrevs"]
-	path = resource/abbrevs
-	url = https://github.com/Juris-M/jurism-abbreviations.git
-	branch=master
 [submodule "docs"]
 	path = docs
 	url = https://github.com/Juris-M/abbrevs-filter-docs.git

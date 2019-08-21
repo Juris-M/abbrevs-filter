@@ -17,7 +17,6 @@ AbbrevsFilter.prototype.initComponent = Zotero.Promise.coroutine(function* (Zote
 	this.attachSetCachedAbbrevList();
 	yield this.setCachedAbbrevList(Zotero.Prefs.get("export.quickCopy.setting"));
 	this.attachGetCachedAbbrevList();
-	yield this.setJurisdictionInstallMap();
 });
 
 AbbrevsFilter.prototype.initPage = function () {}

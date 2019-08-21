@@ -6,6 +6,9 @@ AbbrevsFilter.prototype.importList = 	Zotero.Promise.coroutine(function* (window
 	  mode: 0, 1, or 2
 	  }
 	*/
+	
+	yield AbbrevsFilter.JurisdictionMapper.init(this);
+	
 	var me = this;
 
 	var sql, sqlinsert;
@@ -13,6 +16,8 @@ AbbrevsFilter.prototype.importList = 	Zotero.Promise.coroutine(function* (window
 	var CSL = me.CSL;
 	var json_str = "";
 
+	var jurisAbbrevsDir = Zotero.getJurisAbbrevsDirectory().path;
+	
 	if (params.fileForImport) {
 		var file = params.fileForImport;
 		params.fileForImport = false;
@@ -32,7 +37,7 @@ AbbrevsFilter.prototype.importList = 	Zotero.Promise.coroutine(function* (window
 		} while (read != 0);
 		cstream.close(); // me closes fstream
 	} else if (params.resourceListMenuValue) {
-		json_str = Zotero.File.getContentsFromURL('resource://abbrevs-filter/abbrevs/' + params.resourceListMenuValue);
+		json_str = yield Zotero.File.getContentsAsync(OS.Path.join(jurisAbbrevsDir, params.resourceListMenuValue));
 	}
 
 	var importOneList = Zotero.Promise.coroutine(function* (obj, shy) {

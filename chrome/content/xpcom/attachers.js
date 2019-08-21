@@ -59,33 +59,48 @@ AbbrevsFilter.prototype.attachSetSuppressJurisdictions = function() {
     });
 }
 
-AbbrevsFilter.prototype.setJurisdictionInstallMap = Zotero.Promise.coroutine(function* () {
+AbbrevsFilter.prototype.JurisdictionMapper = new function() {
 	// Check for existence of abbrevsInstalled table, create if not
 	// present
-	var sql = "CREATE TABLE IF NOT EXISTS abbrevsInstalled ("
-		+ "styleID TEXT,"
-		+ "importListName TEXT,"
-		+ "version INT,"
-		+ "PRIMARY KEY (styleID, importListName)"
-	+ ")"
-	yield this.db.queryAsync(sql);
-	this.abbrevsInstalled = {};
-	this.jurisdictionInstallMap = {};
-	var resLst = JSON.parse(Zotero.File.getContentsFromURL('resource://abbrevs-filter/abbrevs/DIRECTORY_LISTING.json'));
-	for (var i=0,ilen=resLst.length; i< ilen; i++) {
-		var info = resLst[i];
-		if (info.jurisdiction) {
-			var jurisdiction = info.jurisdiction;
-			if (!this.jurisdictionInstallMap[jurisdiction]) {
-				this.jurisdictionInstallMap[jurisdiction] = {};
-			}
-			this.jurisdictionInstallMap[jurisdiction][info.filename] = info.version;
-			for (var variant in info.variants) {
-				this.jurisdictionInstallMap[jurisdiction][info.filename.replace(/(.*)(\.json)/, "$1-" + variant + "$2")] = info.variants[variant];
+	var _initialized = false;
+
+	this.init = Zotero.Promise.coroutine(function* (me) {	
+
+		if (_initialized) return;
+		
+		var sql = "CREATE TABLE IF NOT EXISTS abbrevsInstalled ("
+			+ "styleID TEXT,"
+			+ "importListName TEXT,"
+			+ "version INT,"
+			+ "PRIMARY KEY (styleID, importListName)"
+			+ ")"
+		yield me.db.queryAsync(sql);
+		me.abbrevsInstalled = {};
+		me.jurisdictionInstallMap = {};
+		
+		var jurisAbbrevsDir = Zotero.getJurisAbbrevsDirectory().path;
+		var jurisAbbrevsDirectoryFile = OS.Path.join(jurisAbbrevsDir, 'DIRECTORY_LISTING.json');
+		var versions = yield Zotero.File.getContentsAsync(jurisAbbrevsDirectoryFile);
+		var resLst = JSON.parse(versions);
+		
+		// var resLst = JSON.parse(Zotero.File.getContentsFromURL('resource://abbrevs-filter/abbrevs/DIRECTORY_LISTING.json'));
+		
+		for (var i=0,ilen=resLst.length; i< ilen; i++) {
+			var info = resLst[i];
+			if (info.jurisdiction) {
+				var jurisdiction = info.jurisdiction;
+				if (!me.jurisdictionInstallMap[jurisdiction]) {
+					me.jurisdictionInstallMap[jurisdiction] = {};
+				}
+				me.jurisdictionInstallMap[jurisdiction][info.filename] = info.version;
+				for (var variant in info.variants) {
+					me.jurisdictionInstallMap[jurisdiction][info.filename.replace(/(.*)(\.json)/, "$1-" + variant + "$2")] = info.variants[variant];
+				}
 			}
 		}
-	}
-});
+		_initialized = true;
+	});
+};
 
 AbbrevsFilter.prototype.installAbbrevsForJurisdiction = Zotero.Promise.coroutine(function* (styleID, jurisdiction, preferences) {
 	// Okay!
@@ -96,6 +111,9 @@ AbbrevsFilter.prototype.installAbbrevsForJurisdiction = Zotero.Promise.coroutine
 	if (!preferences) {
 		preferences = [];
 	}
+	
+	yield this.JurisdictionMapper.init(this);
+	
 	this.listname = styleID;
 	if (!this.abbrevsInstalled[styleID]) {
 		// It's an object, not an array. Besides, if we don't know the style, we should just initialize.
