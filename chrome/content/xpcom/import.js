@@ -7,7 +7,7 @@ AbbrevsFilter.prototype.importList = 	Zotero.Promise.coroutine(function* (window
 	  }
 	*/
 	
-	yield AbbrevsFilter.JurisdictionMapper.init(this);
+	yield this.JurisdictionMapper.init();
 	
 	var me = this;
 
