@@ -19,7 +19,7 @@ function getGenericPref(branch,prefName)
 	{
     default:
     case 0:   return undefined;                      // PREF_INVALID
-    case 32:  return getUCharPref(prefName,branch);  // PREF_STRING
+    case 32:  return getCharPref(prefName);  // PREF_STRING
     case 64:  return branch.getIntPref(prefName);    // PREF_INT
     case 128: return branch.getBoolPref(prefName);   // PREF_BOOL
 	}
@@ -29,7 +29,7 @@ function setGenericPref(branch,prefName,prefValue)
 	switch (typeof prefValue)
 	{
 	case "string":
-		setUCharPref(prefName,prefValue,branch);
+		branch.setCharPref(prefName,prefValue);
 		return;
 	case "number":
 		branch.setIntPref(prefName,prefValue);
@@ -44,19 +44,8 @@ function setDefaultPref(prefName,prefValue)
 	var defaultBranch = Services.prefs.getDefaultBranch(null);
 	setGenericPref(defaultBranch,prefName,prefValue);
 }
-function getUCharPref(prefName,branch)  // Unicode getCharPref
-{
-	branch = branch ? branch : Services.prefs;
-	return branch.getComplexValue(prefName, Components.interfaces.nsISupportsString).data;
-}
-function setUCharPref(prefName,text,branch)  // Unicode setCharPref
-{
-	var string = Components.classes["@mozilla.org/supports-string;1"]
-        .createInstance(Components.interfaces.nsISupportsString);
-	string.data = text;
-	branch = branch ? branch : Services.prefs;
-	branch.setComplexValue(prefName, Components.interfaces.nsISupportsString, string);
-}
+
+// [JavaScript Error: "NS_NOINTERFACE: Component returned failure code: 0x80004002 (NS_NOINTERFACE) [nsIPrefBranch.setComplexValue]" {file: "resource://gre/modules/addons/XPIProvider.jsm -> file:///media/storage/src/JM/zotero-standalone-build/staging/Jurism_linux-x86_64/extensions/abbrevs-filter@juris-m.github.io/bootstrap.js" line: 58}]
 
 var initializePlugin = function() {
     Zotero = Cc["@zotero.org/Zotero;1"]
