@@ -48,11 +48,11 @@ function setDefaultPref(prefName,prefValue)
 // [JavaScript Error: "NS_NOINTERFACE: Component returned failure code: 0x80004002 (NS_NOINTERFACE) [nsIPrefBranch.setComplexValue]" {file: "resource://gre/modules/addons/XPIProvider.jsm -> file:///media/storage/src/JM/zotero-standalone-build/staging/Jurism_linux-x86_64/extensions/abbrevs-filter@juris-m.github.io/bootstrap.js" line: 58}]
 
 var initializePlugin = function() {
-    Zotero = Cc["@zotero.org/Zotero;1"]
-	    .getService(Ci.nsISupports)
+    Zotero = Components.classes["@zotero.org/Zotero;1"]
+	    .getService(Components.utils.nsISupports)
 	    .wrappedJSObject;
 	if (AbbrevsService && AbbrevsFilterFactory) {
-		const registrar = Components.manager.QueryInterface(Ci.nsIComponentRegistrar);
+		const registrar = Components.manager.QueryInterface(Components.utils.nsIComponentRegistrar);
 		registrar.unregisterFactory(AbbrevsService.prototype.classID,
 									AbbrevsFilterFactory);
 	}
@@ -92,19 +92,19 @@ var initializePlugin = function() {
 	// Plugin factory
 	AbbrevsFilterFactory = Object.freeze({
 		createInstance: function(aOuter, aIID) {
-			if (aOuter) { throw Cr.NS_ERROR_NO_AGGREGATION; }
+			if (aOuter) { throw Components.results.NS_ERROR_NO_AGGREGATION; }
 			return new AbbrevsService();
 		},
 		loadFactory: function (aLock) { /* unused */ },
-		QueryInterface: XPCOMUtils.generateQI([Ci.nsIFactory])
+		QueryInterface: XPCOMUtils.generateQI([Components.utils.nsIFactory])
 	});
-	const registrar = Components.manager.QueryInterface(Ci.nsIComponentRegistrar);
+	const registrar = Components.manager.QueryInterface(Components.utils.nsIComponentRegistrar);
 	registrar.registerFactory(AbbrevsService.prototype.classID,
 							  AbbrevsService.prototype.classDescription,
 							  AbbrevsService.prototype.contractID,
 							  AbbrevsFilterFactory);
 
-	AbbrevsFilter = Components.classes['@juris-m.github.io/abbrevs-filter;1'].getService(Ci.nsISupports).wrappedJSObject;
+	AbbrevsFilter = Components.classes['@juris-m.github.io/abbrevs-filter;1'].getService(Components.utils.nsISupports).wrappedJSObject;
 	AbbrevsFilter.initComponent(Zotero);
 }.bind(this);
 
@@ -124,7 +124,7 @@ function domListener (event) {
 		return;
 	} else if (doc.documentElement.getAttribute('id') === 'csl-edit') {
 
-		Zotero = Cc["@zotero.org/Zotero;1"].getService(Ci.nsISupports).wrappedJSObject;
+		Zotero = Components.classes["@zotero.org/Zotero;1"].getService(Components.utils.nsISupports).wrappedJSObject;
 		
 		var AbbrevsFilter = Components.classes['@juris-m.github.io/abbrevs-filter;1'].getService(Components.interfaces.nsISupports).wrappedJSObject;
 		AbbrevsFilter.initWindow(doc.defaultView, doc);
@@ -164,7 +164,7 @@ function domListener (event) {
 		button.addEventListener("command", attachStyleEngine, false);
 	} else if (doc.getElementById("zotero-add-citation-dialog") || doc.getElementById("quick-format-search")) {
 
-		var stringBundle = Cc["@mozilla.org/intl/stringbundle;1"]
+		var stringBundle = Components.classes["@mozilla.org/intl/stringbundle;1"]
 			.getService(Components.interfaces.nsIStringBundleService)
 			.createBundle("chrome://abbrevs-filter/locale/overlay.properties")
 
