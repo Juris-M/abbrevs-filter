@@ -49,7 +49,7 @@ function setDefaultPref(prefName,prefValue)
 
 var initializePlugin = function() {
     Zotero = Components.classes["@zotero.org/Zotero;1"]
-	    .getService(Components.utils.nsISupports)
+	    .getService(Components.interfaces.nsISupports)
 	    .wrappedJSObject;
 	if (AbbrevsService && AbbrevsFilterFactory) {
 		const registrar = Components.manager.QueryInterface(Components.utils.nsIComponentRegistrar);
@@ -98,13 +98,13 @@ var initializePlugin = function() {
 		loadFactory: function (aLock) { /* unused */ },
 		QueryInterface: XPCOMUtils.generateQI([Components.utils.nsIFactory])
 	});
-	const registrar = Components.manager.QueryInterface(Components.utils.nsIComponentRegistrar);
+	const registrar = Components.manager.QueryInterface(Components.interfaces.nsIComponentRegistrar);
 	registrar.registerFactory(AbbrevsService.prototype.classID,
 							  AbbrevsService.prototype.classDescription,
 							  AbbrevsService.prototype.contractID,
 							  AbbrevsFilterFactory);
 
-	AbbrevsFilter = Components.classes['@juris-m.github.io/abbrevs-filter;1'].getService(Components.utils.nsISupports).wrappedJSObject;
+	AbbrevsFilter = Components.classes['@juris-m.github.io/abbrevs-filter;1'].getService(Components.interfaces.nsISupports).wrappedJSObject;
 	AbbrevsFilter.initComponent(Zotero);
 }.bind(this);
 
@@ -124,7 +124,7 @@ function domListener (event) {
 		return;
 	} else if (doc.documentElement.getAttribute('id') === 'csl-edit') {
 
-		Zotero = Components.classes["@zotero.org/Zotero;1"].getService(Components.utils.nsISupports).wrappedJSObject;
+		Zotero = Components.classes["@zotero.org/Zotero;1"].getService(Components.interfaces.nsISupports).wrappedJSObject;
 		
 		var AbbrevsFilter = Components.classes['@juris-m.github.io/abbrevs-filter;1'].getService(Components.interfaces.nsISupports).wrappedJSObject;
 		AbbrevsFilter.initWindow(doc.defaultView, doc);
