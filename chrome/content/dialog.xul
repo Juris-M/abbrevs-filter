@@ -43,6 +43,7 @@
                  type="autocomplete" 
                  autocompletesearch="jurism" 
                  autocompletesearchparam='{"fieldName":"countries"}'
+                 completeselectedindex="true"
                  ontextentered="Abbrevs_Filter_Dialog.handleJurisdictionAutoCompleteSelect(this);"/>
         <hbox flex="1"/>
       </vbox>
