@@ -1,5 +1,8 @@
 var AbbrevsFilter = Components.classes['@juris-m.github.io/abbrevs-filter;1'].getService(Components.interfaces.nsISupports).wrappedJSObject;
 
+Components.utils.import("resource://gre/modules/osfile.jsm")
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 var Abbrevs_Filter_Dialog = new function () {
 
     this.importChooseSourceFile = importChooseSourceFile;
@@ -450,32 +453,46 @@ var Abbrevs_Filter_Dialog = new function () {
         row.appendChild(node);
     }
 
-    function handleJurisdictionAutoCompleteSelect (textbox) {
-		return Zotero.spawn(function* () {
-			var result;
-			if (textbox.value) {
-				// Comment is the tag code, value is the tag description
-				result = getJurisdictionResult(textbox);
-			}
-			if (result) {
-				var ok = yield addToSuppressJurisdictions(result.comment, result.val);
-				if (ok) {
-					yield setJurisdictionNode(result.comment,result.val);
-				}
-			}
-			textbox.value = '';
-			textbox.blur();
-		})
+    async function handleJurisdictionAutoCompleteSelect (textbox) {
+        var controller = textbox.controller;
+        if (!controller.matchCount) return;
+        var name = false;
+        var id = false;
+        for (let i=0; i<controller.matchCount; i++) {
+            if (controller.getCommentAt(i) == textbox.value) {
+                name = controller.getCommentAt(i);
+                id = controller.getValueAt(i);
+            }
+        }
+        if (!id) {
+            return;
+        }
+        // Manually clear autocomplete controller's reference to
+        // textbox to prevent error next time around
+        // (blindly channeling Zotero here)
+        textbox.mController.input = null;
+        var ok = await addToSuppressJurisdictions(id, name);
+        if (ok) {
+            await setJurisdictionNode(id, name);
+        }
+        textbox.value = '';
+        textbox.blur();
+
 	}
 
     function buildResourceList() {
         var popup = document.getElementById('resource-list-popup');
-        var resLst = JSON.parse(Zotero.File.getContentsFromURL('resource://abbrevs-filter/abbrevs/DIRECTORY_LISTING.json'));
+        // Should be set in a shared function
+        var jurisAbbrevsDir = Zotero.getJurisAbbrevsDirectory().path;
+        var jurisAbbrevsDirectoryFile = OS.Path.join(jurisAbbrevsDir, 'DIRECTORY_LISTING.json');
+        var versions = Zotero.File.getContents(jurisAbbrevsDirectoryFile);
+        var resLst = JSON.parse(versions);
+        //var resLst = JSON.parse(Zotero.File.getContentsFromURL('resource://abbrevs-filter/abbrevs/DIRECTORY_LISTING.json'));
         for (var i=0,ilen=resLst.length;i<ilen;i+=1) {
             var info = resLst[i];
-			if (info.jurisdiction) {
-				continue;
-			}
+            if (info.jurisdiction) {
+                continue;
+            }
             var elem = document.createElement('menuitem');
             elem.setAttribute('value',info.filename);
             elem.setAttribute('label',info.name);
@@ -620,16 +637,6 @@ var Abbrevs_Filter_Dialog = new function () {
 		case event.DOM_VK_TAB:
 			event.preventDefault();
 			return true;
-		}
-		return false;
-    }
-
-    function getJurisdictionResult (textbox) {
-		var controller = textbox.controller;
-		for (var i=0; i<controller.matchCount; i++) {
-			if (controller.getValueAt(i) == textbox.value) {
-				return {val:controller.getValueAt(i),comment:controller.getCommentAt(i)};
-			}
 		}
 		return false;
     }
