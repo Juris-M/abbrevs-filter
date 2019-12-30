@@ -8,6 +8,8 @@
 // A synchronus getAbbreviation() function looks up specific
 //   key/value pairs in the cache.
 
+Components.utils.import("resource://gre/modules/osfile.jsm")
+
 AbbrevsFilter.prototype.attachGetCachedAbbrevList = function () {
 	CSL.getCachedAbbrevList = function(cslEngine) {
 		cslEngine.transform.abbrevs = this.cachedAbbreviations;
