@@ -173,8 +173,10 @@ var Abbrevs_Filter_Dialog = new function () {
             for (var key in transform.abbrevs[jurisdiction][category]) {
                 // Remap hereinafter key here
                 if ("hereinafter" === category) {
+                    // Value of "key" received on "hereinafter" abbrev is Item.id
                     var entryItem = Zotero.Items.get(key);
-                    key = (entryItem.libraryID ? entryItem.libraryID : 0) + "_" + entryItem.key;
+                    // Value of "key" is now <libraryID>/<item hash key>
+                    key = entryItem.libraryKey;
                 }
                 keys.push([jurisdiction, key]);
             }
@@ -254,15 +256,20 @@ var Abbrevs_Filter_Dialog = new function () {
 
         // Category
         addHiddenNode(row, category);
-
         // Raw (key)
         var rawbox = document.createElement("description");
         // Show displayTitle if hereinafter
+        // HACK ALERT, this variable is used in two separate blocks below
+        var hereinafterItem = null;
         if ("hereinafter" === category) {
-            var entryItem = Zotero.Items.parseLibraryKeyHash(key)
-            entryItem = Zotero.Items.getByLibraryAndKey(entryItem.libraryID, entryItem.key);
-            var displayTitle = entryItem.getDisplayTitle(true);
+            // For "hereinafter" category, getAbbreviationKeys has transformed "key" from Item.id to Item.libraryKey,
+            // a Zotero value combining combining library ID and item hash key in a single string.
+            // We memo that here.
             rawbox.setAttribute("system_id", key);
+            // 
+            var { libraryID, key } = Zotero.Items.parseLibraryKey(key);
+            hereinafterItem = Zotero.Items.getByLibraryAndKey(libraryID, key);
+            var displayTitle = hereinafterItem.getDisplayTitle(true);
             rawbox.setAttribute("value", displayTitle);
         } else if ("place" === category && key === key.toUpperCase()) {
             var humanForm = style.sys.getHumanForm(key.toLowerCase(), false, true);
@@ -288,13 +295,8 @@ var Abbrevs_Filter_Dialog = new function () {
         abbrevbox.setAttribute("class", "zotero-clicky");
         // Remap hereinafter key here
         if ("hereinafter" === category) {
-            var entryItem = Zotero.Items.parseLibraryKeyHash(key);
-            if (entryItem) {
-                entryItem = Zotero.Items.getByLibraryAndKey(entryItem.libraryID, entryItem.key);
-            } else {
-                entryItem = Zotero.Items.get(key);
-            }
-            key = entryItem.id;
+            // Change "key" of "hereinafter" item back to Item.id
+            key = hereinafterItem.id;
         }
         abbrevbox.setAttribute("value", transform.abbrevs[jurisdictionCode][category][key]);
         //abbrevbox.setAttribute("flex", "1");
@@ -410,10 +412,12 @@ var Abbrevs_Filter_Dialog = new function () {
 
 			row.removeChild(data.abbrevNode);
 			
-			// Now rawval shifts to become the system_id
-			if (data.rawNode.getAttribute("system_id")) {
-				data.rawVal = data.rawNode.getAttribute("system_id");
-			}
+            // Now rawval shifts to become the system_id
+            if (data.rawNode.getAttribute("system_id")) {
+                // Rawval is set to system_id, which is Item.libraryKey (see above)
+                // This is used for the database operation
+                data.rawVal = data.rawNode.getAttribute("system_id");
+            }
 			
 			var jurisdictionCode = yield Zotero.CachedJurisdictionData.setJurisdictionByIdOrName(data.jurisdictionVal);
 			
@@ -421,15 +425,13 @@ var Abbrevs_Filter_Dialog = new function () {
 				yield AFZ.saveEntry(data.styleIDVal, jurisdictionCode, data.categoryVal, data.rawVal, data.abbrevVal);
 			});
 
-			// Reverse remap hereinafter key here
 			if ("hereinafter" === data.categoryVal) {
-				var entryItem = Zotero.Items.parseLibraryKeyHash(data.rawVal);
+				// For the in-memory lookup, we use the Item.id, so we have to transform data.rawVal (back and forth, back and forth)
+				var { libraryID, key } = Zotero.Items.parseLibraryKey(data.rawVal);
+				entryItem = Zotero.Items.getByLibraryAndKey(libraryID, key);
 				if (entryItem) {
-					entryItem = Zotero.Items.getByLibraryAndKey(entryItem.libraryID, entryItem.key);
-				} else {
-					entryItem = Zotero.Items.get(data.rawVal);
+					data.rawVal = entryItem.id;
 				}
-				data.rawVal = entryItem.id;
 			}
 
 			// Assuming all of that went well, set value on memory object

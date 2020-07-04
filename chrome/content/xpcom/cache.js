@@ -86,18 +86,18 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
 		    return ret.length ? ret : false;
         },
         "hereinafter": function (item) {
-            return item.id;
+            return [item.id];
         },
         "classic": function (item) {
 		    // This is a change from legacy, which used "<author>, <title>"
-            return item.id;
+            return [item.id];
         }
     }
 
 	var _registerEntries = Zotero.Promise.coroutine(function* (val, jurisdictions, category, passed_field) {
+		var humanVal = null;
 		if (passed_field) {
 			var topCode = jurisdictions.join(":");
-			var humanVal = null;
 			if ("authority" === passed_field) {
 				humanVal = styleEngine.sys.getHumanForm(topCode, val);
 				// If humanVal found, assume val is a code. Normalize humanVal, leave
@@ -114,6 +114,10 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
 		for (let i=jurisdictions.length;i>0;i--) {
 			let jurisdiction = jurisdictions.slice(0,i).join(":");
 			yield this._setCacheEntry(styleID, obj, jurisdiction, category, val, humanVal);
+		}
+		if (category === "hereinafter") {
+			var item = Zotero.Items.get(val);
+			humanVal = item.libraryKey;
 		}
 		yield this._setCacheEntry(styleID, obj, "default", category, val, humanVal);
 	}.bind(this));
@@ -198,11 +202,12 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
 			
 		}
 		// items
-		for (let key in rawItemFunction) {
-			rawvals = rawItemFunction[key](item);
+		for (let functionType in rawItemFunction) {
+			rawvals = rawItemFunction[functionType](item);
 			for (let i=0,ilen=rawvals.length;i<ilen;i++) {
 				var val = rawvals[i];
-				yield _registerEntries(val, jurisdictions, key);
+				// Empty array registers only for "default" jurisdiction
+				yield _registerEntries(val, [], functionType);
 			}
 		}
 		yield this.Zotero.CachedJurisdictionData.load(item);
