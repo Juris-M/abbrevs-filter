@@ -145,6 +145,10 @@ AbbrevsFilter.prototype.installAbbrevsForJurisdiction = Zotero.Promise.coroutine
 			if (!this.abbrevsInstalled[styleID][jurisdiction]) {
 				this.abbrevsInstalled[styleID][jurisdiction] = {};
 			}
+
+			// XXXZ Here is where the version check and update of individual
+			// jurisdictions happens.
+			
 			if (!this.abbrevsInstalled[styleID][jurisdiction][installkey] || installver != this.abbrevsInstalled[styleID][jurisdiction][installkey]) {
 				yield this.importList(null, null, {
 					fileForImport: false,
