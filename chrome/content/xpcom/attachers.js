@@ -104,16 +104,14 @@ AbbrevsFilter.prototype.JurisdictionMapper = new function() {
 	});
 };
 
-AbbrevsFilter.prototype.installAbbrevsForJurisdiction = Zotero.Promise.coroutine(function* (styleID, jurisdiction, preferences) {
+AbbrevsFilter.prototype.installAbbrevsForJurisdiction = Zotero.Promise.coroutine(function* (styleID, jurisdiction) {
 	// Okay!
 	// This function can be hit repeatedly. We're encountering problems because its state is unstable.
 	if (!jurisdiction) {
 		return;
 	}
-	if (!preferences) {
-		preferences = [];
-	}
-	
+
+	// This should really only be called once per citation cluster, at most.
 	yield this.JurisdictionMapper.init(this);
 	
 	this.listname = styleID;
@@ -130,7 +128,9 @@ AbbrevsFilter.prototype.installAbbrevsForJurisdiction = Zotero.Promise.coroutine
 		for (var i=0,ilen=rows.length; i<ilen; i++) {
 			var row = rows[i];
 			var country = row.importListName.replace(/^auto-/, "").replace(/\-.*$/, "").replace(/\.json/, "");
-			this.abbrevsInstalled[styleID][country] = {};
+			if (!this.abbrevsInstalled[styleID][country]) {
+				this.abbrevsInstalled[styleID][country] = {};
+			}
 			this.abbrevsInstalled[styleID][country][row.importListName] = row.version;
 		}
 	}

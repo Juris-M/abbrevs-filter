@@ -124,8 +124,21 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
         var item = this.sys.retrieveItem(id);
         if (item.jurisdiction) {
             var jurisdictions = item.jurisdiction.split(":");
-            // Do it. Right here.
-            yield this.installAbbrevsForJurisdiction(styleID, jurisdictions[0], styleModulePreferences);
+            // XXXZ
+            // This FLAGS abbrev jurisdictions as installed to this style. When first
+            // called, it will also guarantee that all domains are up to date in the
+            // DB.
+            // QUESTION: Does the DB hold domain abbrevs separately? Or does in
+            // just lump stuff together?
+            // ANSWER: The importList function receives the filename on a
+            // resourceListMenuValue key in its third argument. The top-level jurisdiction
+            // and domain can be derived from the filename. Check the importList function
+            // to see if the domain works its way into the DB.
+            // CHECKED: The importList function calls saveEntry, which does NOT
+            // take the domain as an argument. So saves into the DB currently
+            // assume a single domain.
+            // CONCLUSION: importList and saveEntry will need modification.
+            yield this.installAbbrevsForJurisdiction(styleID, jurisdictions[0]);
         } else {
             var jurisdictions = [];
         }
@@ -179,18 +192,11 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
                 var val = rawvals[j][0];
                 var category = rawvals[j][1];
                 var passed_field = rawvals[j][2];
-
-                // zzz This would have broken courtID if it contains a period.
-                // val = styleEngine.sys.normalizeAbbrevsKey(passed_field, val);
-
                 yield _registerEntries(val, jurisdictions, category, passed_field);
                 if (item.multi && item.multi._keys.jurisdiction) {
                     for (var key of Object.keys(item.multi._keys.jurisdiction)) {
                         val = item.multi._keys[key];
-
-                        // zzz see above
-                        // val = styleEngine.sys.normalizeAbbrevsKey(passed_field, val);
-
+                        // See calls to this function above.
                         yield _registerEntries(val, jurisdictions, category, passed_field);
                     }
                 }
