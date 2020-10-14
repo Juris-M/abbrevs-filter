@@ -104,11 +104,12 @@ AbbrevsFilter.prototype.JurisdictionMapper = new function() {
 	});
 };
 
-AbbrevsFilter.prototype.installAbbrevsForJurisdiction = Zotero.Promise.coroutine(function* (styleID, jurisdiction) {
+AbbrevsFilter.prototype.installAbbrevsForJurisdiction = Zotero.Promise.coroutine(function* (styleID, country) {
 	// Okay!
 	// This function can be hit repeatedly. We're encountering problems because its state is unstable.
-	if (!jurisdiction) {
-		return;
+	var ret = [];
+	if (!country) {
+		return ret;
 	}
 
 	// This should really only be called once per citation cluster, at most.
@@ -127,29 +128,29 @@ AbbrevsFilter.prototype.installAbbrevsForJurisdiction = Zotero.Promise.coroutine
 		var rows = yield this.db.queryAsync(sql, [styleID]);
 		for (var i=0,ilen=rows.length; i<ilen; i++) {
 			var row = rows[i];
-			var country = row.importListName.replace(/^auto-/, "").replace(/\-.*$/, "").replace(/\.json/, "");
-			if (!this.abbrevsInstalled[styleID][country]) {
-				this.abbrevsInstalled[styleID][country] = {};
+			var mycountry = row.importListName.replace(/^auto-/, "").replace(/\-.*$/, "").replace(/\.json/, "");
+			if (!this.abbrevsInstalled[styleID][mycountry]) {
+				this.abbrevsInstalled[styleID][mycountry] = {};
 			}
-			this.abbrevsInstalled[styleID][country][row.importListName] = row.version;
+			this.abbrevsInstalled[styleID][mycountry][row.importListName] = row.version;
 		}
 	}
-	// ✓ Check if jurisdiction defs are available
+	// ✓ Check if country defs are available
 	// ✓ If they are, check for each list+pref against abbrevsInstalled
 	// ✓ Check if a list+pref exists, check its version
 	// ✓ If it doesn't exist or the versions don't match, overwrite
-	if (this.jurisdictionInstallMap[jurisdiction]) {
-		var installmap = this.jurisdictionInstallMap[jurisdiction];
+	if (this.jurisdictionInstallMap[country]) {
+		var installmap = this.jurisdictionInstallMap[country];
 		for (var installkey in installmap) {
 			var installver = installmap[installkey];
-			if (!this.abbrevsInstalled[styleID][jurisdiction]) {
-				this.abbrevsInstalled[styleID][jurisdiction] = {};
+			if (!this.abbrevsInstalled[styleID][country]) {
+				this.abbrevsInstalled[styleID][country] = {};
 			}
 
 			// XXXZ Here is where the version check and update of individual
-			// jurisdictions happens.
+			// countrys happens.
 			
-			if (!this.abbrevsInstalled[styleID][jurisdiction][installkey] || installver != this.abbrevsInstalled[styleID][jurisdiction][installkey]) {
+			if (!this.abbrevsInstalled[styleID][country][installkey] || installver != this.abbrevsInstalled[styleID][country][installkey]) {
 				yield this.importList(null, null, {
 					fileForImport: false,
 					resourceListMenuValue: installkey,
@@ -158,8 +159,12 @@ AbbrevsFilter.prototype.installAbbrevsForJurisdiction = Zotero.Promise.coroutine
 				});
 				var sql = "INSERT OR REPLACE INTO abbrevsInstalled (styleID, importListName, version) VALUES (?, ?, ?)";
 				yield this.db.queryAsync(sql, [styleID, installkey, installver]);
-				this.abbrevsInstalled[styleID][jurisdiction][installkey] = installver;
+				this.abbrevsInstalled[styleID][country][installkey] = installver;
 			}
 		}
 	}
+	var ret = Object.keys(this.jurisdictionInstallMap[country]);
+	ret = ret.map(key => key.replace(/^auto-[^\-]+(?:-([^.]+))*\.json/, "$1"));
+	ret = ret.filter(o => o ? o : !!o);
+	return ret;
 });

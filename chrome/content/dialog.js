@@ -242,7 +242,14 @@ var Abbrevs_Filter_Dialog = new function () {
         
         // Jurisdiction
         var rawlabel = document.createElement("label");
-        var jurisdictionName = Zotero.CachedJurisdictionData.jurisdictionNameFromId(jurisdictionCode);
+		var displayCodeArr = [];
+		if (jurisdictionCode) {
+			displayCodeArr = jurisdictionCode.split("@");
+		}
+        var jurisdictionName = Zotero.CachedJurisdictionData.jurisdictionNameFromId(displayCodeArr[0]);
+		if (displayCodeArr[1]) {
+			jurisdictionName += ("@" + displayCodeArr[1]);
+		}
         rawlabel.setAttribute("value", jurisdictionName);
         rawlabel.setAttribute("crop", "end");
         if (jurisdictionName === "default") {

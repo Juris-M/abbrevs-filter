@@ -9,15 +9,13 @@ AbbrevsFilter.prototype.importList = 	Zotero.Promise.coroutine(function* (window
 	
 	yield this.JurisdictionMapper.init(this);
 	
-	var me = this;
-
 	var sql, sqlinsert;
-	var Zotero = me.Zotero;
-	var CSL = me.CSL;
+	var Zotero = this.Zotero;
+	var CSL = this.CSL;
 	var json_str = "";
 
 	var jurisAbbrevsDir = Zotero.getJurisAbbrevsDirectory().path;
-	
+
 	if (params.fileForImport) {
 		var file = params.fileForImport;
 		params.fileForImport = false;
@@ -40,41 +38,17 @@ AbbrevsFilter.prototype.importList = 	Zotero.Promise.coroutine(function* (window
 		json_str = yield Zotero.File.getContentsAsync(OS.Path.join(jurisAbbrevsDir, params.resourceListMenuValue));
 	}
 
-	var importOneList = Zotero.Promise.coroutine(function* (obj, shy) {
-		var curr = 0;
-		var tots = 0;
-		for (var jurisdiction of Object.keys(obj)) {
-			for (var category of Object.keys(obj[jurisdiction])) {
-				for (var key of Object.keys(obj[jurisdiction][category])) {
-					tots++;
-				}
-			}
-		}
-		if (document) {
-			var progressNode = document.getElementById("import-progress");
-			progressNode.setAttribute("hidden", false);
-			progressNode.setAttribute("value", 0);
-			progressNode.setAttribute("max", tots);
-		}
-		for (var jurisdiction of Object.keys(obj)) {
-			for (var category of Object.keys(obj[jurisdiction])) {
-				for (var key of Object.keys(obj[jurisdiction][category])) {
-					var val = obj[jurisdiction][category][key];
-					yield me.saveEntry(params.styleID, jurisdiction, category, key, val, shy);
-					curr++;
-					if (document) {
-						if (!(curr % 10)) {
-							progressNode.setAttribute("value", curr);
-						}
-					}
-				}
-			}
-		}
-	}.bind(me));
-
 	if (json_str) {
 		var listObj = JSON.parse(json_str);
-		yield me.db.executeTransaction(function* () {
+		if (params.resourceListMenuValue) {
+			var m = params.resourceListMenuValue.match(/^auto-[^\-\.]+(?:-([^\.]+))*\.json/);
+			if (m) {
+				params.domain = m[1];
+			}
+		}
+
+		var me = this;
+		yield this.db.executeTransaction(function* () {
 			switch (params.mode) {
 			case 0:
 				var shy = true;
@@ -104,11 +78,11 @@ AbbrevsFilter.prototype.importList = 	Zotero.Promise.coroutine(function* (window
 			}
 			if (listObj.xdata) {
 				listObj = listObj.xdata;
-				yield importOneList(listObj, shy);
+				yield this.importOneList(document, params, listObj, shy);
 			} else {
 				var normalizedObjects = normalizeObjects(listObj);
 				for (var i=0,ilen=normalizedObjects.length;i<ilen;i++) {
-					yield importOneList(normalizedObjects[i], shy);
+					yield this.importOneList(document, params, normalizedObjects[i], shy);
 				}
 			}
 		}.bind(me));
@@ -205,3 +179,36 @@ AbbrevsFilter.prototype.importList = 	Zotero.Promise.coroutine(function* (window
 		}
 	}
 });
+
+AbbrevsFilter.prototype.importOneList = Zotero.Promise.coroutine(function* (document, params, obj, shy) {
+	var curr = 0;
+	var tots = 0;
+	for (var jurisdiction of Object.keys(obj)) {
+		for (var category of Object.keys(obj[jurisdiction])) {
+			for (var key of Object.keys(obj[jurisdiction][category])) {
+				tots++;
+			}
+		}
+	}
+	if (document) {
+		var progressNode = document.getElementById("import-progress");
+		progressNode.setAttribute("hidden", false);
+		progressNode.setAttribute("value", 0);
+		progressNode.setAttribute("max", tots);
+	}
+	for (var jurisdiction of Object.keys(obj)) {
+		for (var category of Object.keys(obj[jurisdiction])) {
+			for (var key of Object.keys(obj[jurisdiction][category])) {
+				var val = obj[jurisdiction][category][key];
+				yield this.saveEntry(params.styleID, jurisdiction, category, key, val, shy, params.domain);
+				curr++;
+				if (document) {
+					if (!(curr % 10)) {
+						progressNode.setAttribute("value", curr);
+					}
+				}
+			}
+		}
+	}
+});
+

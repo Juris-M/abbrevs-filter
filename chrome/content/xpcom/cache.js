@@ -7,7 +7,6 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
     var CSL = this.CSL;
     var jurisdiction, category, rawvals;
     var isMlzStyle = styleEngine.opt.version.slice(0, 4) === '1.1m';
-    var styleModulePreferences = styleEngine.locale[styleEngine.opt.lang].opts["jurisdiction-preference"];
 
     let rawFieldFunction = {
         "container-title": function (item, varname) {
@@ -88,9 +87,9 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
             // This is a change from legacy, which used "<author>, <title>"
             return [item.id];
         }
-    }
+    };
 
-    var _registerEntries = Zotero.Promise.coroutine(function* (val, jurisdictions, category, passed_field) {
+    var _registerEntries = Zotero.Promise.coroutine(function* (val, jurisdictions, category, passed_field, domain) {
         var humanVal = null;
         if (passed_field) {
             var topCode = jurisdictions.join(":");
@@ -109,22 +108,23 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
         }
         for (let i=jurisdictions.length;i>0;i--) {
             let jurisdiction = jurisdictions.slice(0,i).join(":");
-            yield this._setCacheEntry(styleID, obj, jurisdiction, category, val, humanVal);
+            yield this._setCacheEntry(styleID, obj, jurisdiction, category, val, humanVal, domain);
         }
         if (category === "hereinafter") {
             var item = Zotero.Items.get(val);
             humanVal = item.libraryKey;
         }
-        yield this._setCacheEntry(styleID, obj, "default", category, val, humanVal);
+        yield this._setCacheEntry(styleID, obj, "default", category, val, humanVal, domain);
     }.bind(this));
 
     // process
     for (var i=0,ilen=citation.citationItems.length;i<ilen;i++) {
         var id = citation.citationItems[i].id;
         var item = this.sys.retrieveItem(id);
+		styleEngine.availableDomains = null;
         if (item.jurisdiction) {
             var jurisdictions = item.jurisdiction.split(":");
-            // XXXZ
+
             // This FLAGS abbrev jurisdictions as installed to this style. When first
             // called, it will also guarantee that all domains are up to date in the
             // DB.
@@ -138,7 +138,12 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
             // take the domain as an argument. So saves into the DB currently
             // assume a single domain.
             // CONCLUSION: importList and saveEntry will need modification.
-            yield this.installAbbrevsForJurisdiction(styleID, jurisdictions[0]);
+			// PS: Also setCacheEntry.
+
+			// Returns a list of available domains.
+			// This is checked in citeproc-js against the priority-ordered lists
+			// for the item-determined locale (if any), then the style locale.
+            styleEngine.opt.availableAbbrevDomains = yield this.installAbbrevsForJurisdiction(styleID, jurisdictions[0]);
         } else {
             var jurisdictions = [];
         }
@@ -151,6 +156,9 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
                 item["language-name-original"] = lst[1];
             }
         }
+		var domain = CSL.getAbbrevsDomain(styleEngine, item.language);
+		// So we have a note of the best domain that exists.
+		
         // fields
         for (let field of Object.keys(item)) {
             category = CSL.FIELD_CATEGORY_REMAP[field];
@@ -192,14 +200,18 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
                 var val = rawvals[j][0];
                 var category = rawvals[j][1];
                 var passed_field = rawvals[j][2];
-                yield _registerEntries(val, jurisdictions, category, passed_field);
+                yield _registerEntries(val, jurisdictions, category, passed_field, domain);
+				// This really shouldn't be necessary anymore. Unkeyed jurisdictions are not possible,
+				// and language switching is to be controlled through abbrev list selection.
+				/*
                 if (item.multi && item.multi._keys.jurisdiction) {
                     for (var key of Object.keys(item.multi._keys.jurisdiction)) {
                         val = item.multi._keys[key];
                         // See calls to this function above.
-                        yield _registerEntries(val, jurisdictions, category, passed_field);
+                        yield _registerEntries(val, jurisdictions, category, passed_field, domain);
                     }
                 }
+				 */
             }
             
         }
@@ -217,7 +229,7 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
     this._preloadingInProgress = false;
 });
 
-AbbrevsFilter.prototype._setCacheEntry = Zotero.Promise.coroutine(function* (styleID, obj, jurisdiction, category, rawval, humanRawVal) {
+AbbrevsFilter.prototype._setCacheEntry = Zotero.Promise.coroutine(function* (styleID, obj, jurisdiction, category, rawval, humanRawVal, domain) {
     if (!rawval) return;
     var sql, abbrev;
     var kc = this.keycache;
@@ -261,12 +273,6 @@ AbbrevsFilter.prototype._setCacheEntry = Zotero.Promise.coroutine(function* (sty
         yield this.db.executeTransaction(function* () {
             yield this._setKeys(styleID, jurisd, category);
         }.bind(this));
-        if (!obj[jurisd]) {
-            obj[jurisd] = {};
-        }
-        if (!obj[jurisd][category]) {
-            obj[jurisd][category] = {};
-        }
     }
     var ids = [rawID];
     if (humanRawID) {
@@ -275,10 +281,31 @@ AbbrevsFilter.prototype._setCacheEntry = Zotero.Promise.coroutine(function* (sty
     for (var i=0,ilen=ids.length; i<ilen; i++) {
         var id = ids[i];
         if (id) {
-            sql = "SELECT S.string AS abbrev FROM abbreviations A JOIN strings S ON A.abbrID=S.stringID WHERE listID=? AND jurisdictionID=? AND categoryID=? AND rawID=?";
-            abbrev = yield this.db.valueQueryAsync(sql, [kc[styleID], kc[jurisd], kc[category], id]);
+
+			var itemJurisd = domain ? jurisd + "@" + domain : jurisd;
+			if (!obj[itemJurisd]) {
+				obj[itemJurisd] = new this.CSL.AbbreviationSegments();
+			}
+			if (!obj[itemJurisd][category]) {
+				obj[itemJurisd][category] = {};
+			}
+
+			var params = [
+				kc[styleID],
+				kc[jurisd],
+				kc[category],
+				id
+			];
+            sql = "SELECT S.string AS abbrev FROM abbreviations A JOIN strings S ON A.abbrID=S.stringID LEFT JOIN domains D ON D.domainIdx=A.domainIdx WHERE listID=? AND jurisdictionID=? AND categoryID=? AND rawID=?";
+			if (domain) {
+				sql += " AND domain=?";
+				params.push(domain);
+			} else {
+				sql += " AND domain IS NULL";
+			}
+            abbrev = yield this.db.valueQueryAsync(sql, params);
             if (abbrev) {
-                obj[jurisd][category][rawval] = abbrev;
+				obj[itemJurisd][category][rawval] = abbrev;
                 break;
             }
         }
