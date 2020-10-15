@@ -45,9 +45,14 @@ function setDefaultPref(prefName,prefValue)
 	setGenericPref(defaultBranch,prefName,prefValue);
 }
 
+const consoleService = Components.classes["@mozilla.org/consoleservice;1"].getService(Components.interfaces.nsIConsoleService);
+function logMessage(msg) {
+	consoleService.logStringMessage("AFZ msg: " + msg);
+}
+
 // [JavaScript Error: "NS_NOINTERFACE: Component returned failure code: 0x80004002 (NS_NOINTERFACE) [nsIPrefBranch.setComplexValue]" {file: "resource://gre/modules/addons/XPIProvider.jsm -> file:///media/storage/src/JM/zotero-standalone-build/staging/Jurism_linux-x86_64/extensions/abbrevs-filter@juris-m.github.io/bootstrap.js" line: 58}]
 
-var initializePlugin = function() {
+var initializePlugin = async function() {
     Zotero = Components.classes["@zotero.org/Zotero;1"]
 	    .getService(Components.interfaces.nsISupports)
 	    .wrappedJSObject;
@@ -105,7 +110,9 @@ var initializePlugin = function() {
 							  AbbrevsFilterFactory);
 
 	AbbrevsFilter = Components.classes['@juris-m.github.io/abbrevs-filter;1'].getService(Components.interfaces.nsISupports).wrappedJSObject;
-	AbbrevsFilter.initComponent(Zotero);
+	// logMessage("Begin initComponent");
+	await AbbrevsFilter.initComponent(Zotero);
+	// logMessage("End initComponent");
 }.bind(this);
 
 function domListener (event) {

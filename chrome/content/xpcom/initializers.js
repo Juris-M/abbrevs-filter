@@ -1,23 +1,22 @@
-AbbrevsFilter.prototype.initComponent = Zotero.Promise.coroutine(function* (Zotero) {
-	dump("[AFZ] initComponent\n");
+AbbrevsFilter.prototype.initComponent = async function (Zotero) {
 	try {
 		Zotero.Prefs.init();
-		yield Zotero.DataDirectory.init();
+		await Zotero.DataDirectory.init();
 		this.Zotero = Zotero;
 		this.CSL = Zotero.CiteProc.CSL;
 		this.sys = new Zotero.Cite.System({ automaticJournalAbbreviations: false, uppercaseSubtitles: false });
 		this.db = new Zotero.DBConnection("abbrevs-filter");
 	} catch (e) {
-		dump("[AFZ] initComponent OOPS: " + e);
+		Zotero.debug("[AFZ] initComponent OOPS: " + e);
 	}
-	yield this.initDB();
+	await this.initDB();
     this.attachPreloadAbbreviations();
     this.attachGetAbbreviation();
     this.attachSetSuppressJurisdictions();
 	this.attachSetCachedAbbrevList();
-	yield this.setCachedAbbrevList(Zotero.Prefs.get("export.quickCopy.setting"));
+	await this.setCachedAbbrevList(Zotero.Prefs.get("export.quickCopy.setting"));
 	this.attachGetCachedAbbrevList();
-});
+};
 
 AbbrevsFilter.prototype.initPage = function () {}
 
@@ -54,6 +53,7 @@ AbbrevsFilter.prototype.initDB = Zotero.Promise.coroutine(function* () {
     var sql = Zotero.File.getContentsFromURL("resource://abbrevs-filter/schema/abbrevs-filter.sql");
     var version = parseInt(sql.match(/^-- ([0-9]+)/)[1]);
 	var tableExists = yield this.db.tableExists("abbreviations");
+	Zotero.debug(`AFZ: initDB`);
 try {
     if (!tableExists) {
         Zotero.debug("AFZ: [SETUP] no abbreviations table table found, performing scratch install)");
@@ -62,9 +62,12 @@ try {
 			yield this.setDBVersion('abbreviations', version);
 		}.bind(this));
 	} else {
+		Zotero.debug(`AFZ: [SETUP] found abbreviations table, checking for upgrade.`);
+		Zotero.debug(`AFZ: [SETUP] version=${version}`);
 		
 		yield this.db.executeTransaction(function* () {
 			var dbVersion = yield this.getDBVersion('abbreviations');
+		    Zotero.debug(`AFZ: [SETUP] dbVersion=${dbVersion}`);
 			if (version > dbVersion) {
 				Zotero.debug("AFZ: [SETUP] upgrading database schema to version " + version);
 				try {
@@ -86,7 +89,7 @@ try {
 							yield this.db.queryAsync(sql);
 
 							// Copy content to new-format table
-							var sql = "INSERT INTO new_abbreviations SELECT * FROM abbreviations";
+							var sql = "INSERT INTO new_abbreviations SELECT abbreviationIdx,listID,jurisdictionID,categoryID,rawID,abbrID,NULL FROM abbreviations";
 							yield this.db.queryAsync(sql);
 
 							// Turn off foreign keys, just in case
