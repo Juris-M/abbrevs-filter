@@ -41,7 +41,7 @@ AbbrevsFilter.prototype.importList = 	Zotero.Promise.coroutine(function* (window
 	if (json_str) {
 		var listObj = JSON.parse(json_str);
 		if (params.resourceListMenuValue) {
-			var m = params.resourceListMenuValue.match(/^auto-[^\-\.]+(?:-([^\.]+))*\.json/);
+			var m = params.resourceListMenuValue.match(/^auto-[^-]+(?:-([^.]+))*\.json/);
 			if (m) {
 				params.domain = m[1];
 			}
