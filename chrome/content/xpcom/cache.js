@@ -121,7 +121,6 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
     for (var i=0,ilen=citation.citationItems.length;i<ilen;i++) {
         var id = citation.citationItems[i].id;
         var item = this.sys.retrieveItem(id);
-		styleEngine.availableDomains = null;
         if (item.jurisdiction) {
             var jurisdictions = item.jurisdiction.split(":");
 
@@ -143,7 +142,13 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
 			// Returns a list of available domains.
 			// This is checked in citeproc-js against the priority-ordered lists
 			// for the item-determined locale (if any), then the style locale.
-            styleEngine.opt.availableAbbrevDomains = yield this.installAbbrevsForJurisdiction(styleID, jurisdictions[0]);
+			
+			if (!styleEngine.opt.availableAbbrevDomains) {
+				styleEngine.opt.availableAbbrevDomains = {};
+			}
+			if (!styleEngine.opt.availableAbbrevDomains[jurisdictions[0]]) {
+				styleEngine.opt.availableAbbrevDomains[jurisdictions[0]] = yield this.installAbbrevsForJurisdiction(styleID, jurisdictions[0]);
+			}
         } else {
             var jurisdictions = [];
         }
@@ -156,7 +161,7 @@ AbbrevsFilter.prototype.preloadAbbreviations = Zotero.Promise.coroutine(function
                 item["language-name-original"] = lst[1];
             }
         }
-		var domain = CSL.getAbbrevsDomain(styleEngine, item.language);
+		var domain = CSL.getAbbrevsDomain(styleEngine, jurisdictions[0], item.language);
 		// So we have a note of the best domain that exists.
 		
         // fields
@@ -353,7 +358,12 @@ AbbrevsFilter.prototype._getStringID = Zotero.Promise.coroutine(function* (str, 
 });
 
 AbbrevsFilter.prototype.setCachedAbbrevList = Zotero.Promise.coroutine(function* (styleID) {
-    var cachedAbbreviations = {};
+	var cachedAbbreviations;
+	if (this.cachedAbbreviations) {
+		cachedAbbreviations = this.cachedAbbreviations;
+	} else {
+		cachedAbbreviations = {};
+	}
     // Load style abbreviations, if any, to cache
     var sql = "SELECT jurisdiction,category,RV.string AS rawval, ABBR.string AS abbr "
 			+ "FROM abbreviations A "

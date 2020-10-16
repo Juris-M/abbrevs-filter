@@ -147,7 +147,7 @@ AbbrevsFilter.prototype.installAbbrevsForJurisdiction = Zotero.Promise.coroutine
 				this.abbrevsInstalled[styleID][country] = {};
 			}
 
-			// XXXZ Here is where the version check and update of individual
+			// Here is where the version check and update of individual
 			// countrys happens.
 			
 			if (!this.abbrevsInstalled[styleID][country][installkey] || installver != this.abbrevsInstalled[styleID][country][installkey]) {
