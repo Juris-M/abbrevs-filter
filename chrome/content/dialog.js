@@ -499,6 +499,7 @@ var Abbrevs_Filter_Dialog = new function () {
         //var resLst = JSON.parse(Zotero.File.getContentsFromURL('resource://abbrevs-filter/abbrevs/DIRECTORY_LISTING.json'));
         for (var i=0,ilen=resLst.length;i<ilen;i+=1) {
             var info = resLst[i];
+            if (info.filename.slice(0, 5) === "auto-") continue;
             if (info.jurisdiction) {
                 continue;
             }
