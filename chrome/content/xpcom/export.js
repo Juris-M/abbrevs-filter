@@ -1,3 +1,14 @@
+// START Borrowed from Zotero
+// Components.utils.import('resource://zotero/require.js');
+// Not using Cu.import here since we don't want the require module to be cached
+// for includes within ZoteroPane or other code where we want the window instance available to modules.
+Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
+	.getService(Components.interfaces.mozIJSSubScriptLoader)
+	.loadSubScript('resource://abbrevs-filter/require.js');
+// END Borrowed from Zotero
+
+const FilePicker = require('modules/filePicker');
+
 // Export an abbreviation list
 AbbrevsFilter.prototype.exportList = function (window, document) {
 	var me = this;
@@ -8,14 +19,13 @@ AbbrevsFilter.prototype.exportList = function (window, document) {
 		if (m) {
 			shortname = m[1];
 		}
-		var nsIFilePicker = Components.interfaces.nsIFilePicker;
-		var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
-		fp.init(window, "Set the file for export", nsIFilePicker.modeSave);
+		fp = new FilePicker();
+		fp.init(window, "Set the file for export", fp.modeSave);
 		fp.appendFilter("JSON data", "*.json");
 		fp.defaultExtension = ".json";
 		fp.defaultString = shortname + ".json"
-		var rv = fp.show();
-		if (rv == nsIFilePicker.returnOK || rv == nsIFilePicker.returnReplace) {
+		var rv = yield fp.show();
+		if (rv == fp.returnOK || rv == fp.returnReplace) {
 			var json_obj = {};
 			var sql = "SELECT jurisdiction,category,Raw.string AS raw,Abbr.string AS abbr FROM abbreviations "
 				+ "NATURAL JOIN list "
@@ -44,15 +54,17 @@ AbbrevsFilter.prototype.exportList = function (window, document) {
 			}
 
 			json_str = JSON.stringify(json_obj, null, 2);
-			file = fp.file;
-			Components.utils.import("resource://gre/modules/NetUtil.jsm");
+			
 			Components.utils.import("resource://gre/modules/FileUtils.jsm");
-			var ostream = FileUtils.openSafeFileOutputStream(file)
+			var myfp = new FileUtils.File(fp.file);
+			myfp.initWithPath(fp.file);
+			
+			var ostream = FileUtils.openSafeFileOutputStream(myfp);
 			var converter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"]
 				.createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
 			converter.charset = "UTF-8";
-			var istream = converter.convertToInputStream(json_str);
-   			NetUtil.asyncCopy(istream, ostream);
+			var chunk = converter.ConvertFromUnicode(json_str);
+			ostream.write(chunk, chunk.length);
 		}
 	});
 };
