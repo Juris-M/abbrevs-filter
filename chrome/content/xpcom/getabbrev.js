@@ -1,6 +1,6 @@
-var Zotero = this.Zotero;
-var CSL = Zotero.CiteProc.CSL;
-this.citeproc = CSL;
+//var Zotero = this.Zotero;
+//var CSL = Zotero.CiteProc.CSL;
+//this.citeproc = CSL;
 
 // Install a custom abbreviations handler on the processor.
 AbbrevsFilter.prototype.getAbbreviation = function (styleID, obj, jurisdiction, category, key) {

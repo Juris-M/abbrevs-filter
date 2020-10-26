@@ -3,6 +3,17 @@ var AbbrevsFilter = Components.classes['@juris-m.github.io/abbrevs-filter;1'].ge
 Components.utils.import("resource://gre/modules/osfile.jsm")
 Components.utils.import("resource://gre/modules/Services.jsm");
 
+// START Borrowed from Zotero
+// Components.utils.import('resource://zotero/require.js');
+// Not using Cu.import here since we don't want the require module to be cached
+// for includes within ZoteroPane or other code where we want the window instance available to modules.
+Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
+	.getService(Components.interfaces.mozIJSSubScriptLoader)
+	.loadSubScript('resource://abbrevs-filter/require.js');
+// END Borrowed from Zotero
+
+const FilePicker = require('modules/filePicker');
+
 var Abbrevs_Filter_Dialog = new function () {
 
     this.importChooseSourceFile = importChooseSourceFile;
@@ -511,13 +522,11 @@ var Abbrevs_Filter_Dialog = new function () {
     }
     
     function importChooseSourceFile () {
-        var nsIFilePicker = Components.interfaces.nsIFilePicker;
-        var fp = Components.classes["@mozilla.org/filepicker;1"]
-            .createInstance(nsIFilePicker);
-        fp.init(window, "Select a JSON file containing list data for import", nsIFilePicker.modeOpen);
+        fp = new FilePicker();
+        fp.init(window, "Select a JSON file containing list data for import", FilePicker.modeOpen);
         fp.appendFilter("JSON data", "*.json");
         var rv = fp.show();
-        if (rv == nsIFilePicker.returnOK || rv == nsIFilePicker.returnReplace) {
+        if (rv == FilePicker.returnOK || rv == FilePicker.returnReplace) {
             AbbrevsFilter.fileForImport = fp.file;
             var elem = document.getElementById("file-for-import");
             elem.setAttribute('value',fp.file.path);

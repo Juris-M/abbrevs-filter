@@ -11,20 +11,24 @@
 Components.utils.import("resource://gre/modules/osfile.jsm")
 
 AbbrevsFilter.prototype.attachGetCachedAbbrevList = function () {
+    var CSL = Zotero.CiteProc.CSL;
 	CSL.getCachedAbbrevList = function(cslEngine) {
 		cslEngine.transform.abbrevs = this.cachedAbbreviations;
 	}.bind(this);
 }
 
 AbbrevsFilter.prototype.attachSetCachedAbbrevList = function () {
+    var CSL = Zotero.CiteProc.CSL;
 	CSL.setCachedAbbrevList = this.setCachedAbbrevList.bind(this);
 }
 
 AbbrevsFilter.prototype.attachPreloadAbbreviations = function () {
+    var CSL = Zotero.CiteProc.CSL;
 	CSL.preloadAbbreviations = this.preloadAbbreviations.bind(this);
 }
 
 AbbrevsFilter.prototype.attachGetAbbreviation = function () {
+    var CSL = Zotero.CiteProc.CSL;
 	CSL.getAbbreviation = this.getAbbreviation.bind(this);
 }
 
