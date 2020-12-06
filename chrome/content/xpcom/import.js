@@ -199,7 +199,13 @@ AbbrevsFilter.prototype.importOneList = Zotero.Promise.coroutine(function* (docu
 	for (var jurisdiction of Object.keys(obj)) {
 		for (var category of Object.keys(obj[jurisdiction])) {
 			for (var key of Object.keys(obj[jurisdiction][category])) {
+				// We are cautious here. container-title is the only category other
+				// than place and the two institution categories that is used in
+				// auto- abbrev lists.
 				var val = obj[jurisdiction][category][key];
+				if (category == "container-title") {
+					key = this.sys.normalizeAbbrevsKey(null, key);
+				}
 				yield this.saveEntry(params.styleID, jurisdiction, category, key, val, shy, params.domain);
 				curr++;
 				if (document) {
