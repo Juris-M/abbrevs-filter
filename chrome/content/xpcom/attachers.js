@@ -115,10 +115,21 @@ AbbrevsFilter.prototype.installAbbrevsForJurisdiction = Zotero.Promise.coroutine
 	if (!country) {
 		return ret;
 	}
-
 	// This should really only be called once per citation cluster, at most.
 	yield this.JurisdictionMapper.init(this);
 	
+	// Attempt to recover from invalid key of the form Germany|DE or DE|Wurtzburg
+	if (country.indexOf("|") > -1) {
+		var lst = country.split(/\s*|\s*/);
+		var front = lst[0].toLowerCase();
+		var back = lst.slice(-1)[0].toLowerCase();
+		if (this.jurisdictionInstallMap[front]) {
+			country = front;
+		} else if (this.jurisdictionInstallMap[back]) {
+			country = back;
+		}
+	}
+
 	this.listname = styleID;
 	if (!this.abbrevsInstalled[styleID]) {
 		// It's an object, not an array. Besides, if we don't know the style, we should just initialize.
@@ -143,6 +154,7 @@ AbbrevsFilter.prototype.installAbbrevsForJurisdiction = Zotero.Promise.coroutine
 	// ✓ If they are, check for each list+pref against abbrevsInstalled
 	// ✓ Check if a list+pref exists, check its version
 	// ✓ If it doesn't exist or the versions don't match, overwrite
+	var ret = [];
 	if (this.jurisdictionInstallMap[country]) {
 		var installmap = this.jurisdictionInstallMap[country];
 		for (var installkey in installmap) {
@@ -166,9 +178,9 @@ AbbrevsFilter.prototype.installAbbrevsForJurisdiction = Zotero.Promise.coroutine
 				this.abbrevsInstalled[styleID][country][installkey] = installver;
 			}
 		}
+		var ret = Object.keys(this.jurisdictionInstallMap[country]);
+		ret = ret.map(key => key.replace(/^auto-[^\-]+(?:-([^.]+))*\.json/, "$1"));
+		ret = ret.filter(o => o ? o : !!o);
 	}
-	var ret = Object.keys(this.jurisdictionInstallMap[country]);
-	ret = ret.map(key => key.replace(/^auto-[^\-]+(?:-([^.]+))*\.json/, "$1"));
-	ret = ret.filter(o => o ? o : !!o);
 	return ret;
 });
